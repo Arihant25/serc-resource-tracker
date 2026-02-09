@@ -222,7 +222,7 @@ export default function ProfilePage() {
 
     return (
         <div className="container mx-auto py-8 px-4 overflow-hidden">
-            <h1 className="text-3xl font-bold mb-6">Profile & Settings</h1>
+            <h1 className="text-3xl font-bold mb-6">Settings</h1>
 
             <div className="grid lg:grid-cols-3 gap-6">
                 {/* Profile Info */}

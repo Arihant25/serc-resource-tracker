@@ -44,7 +44,7 @@ const UserSchema = new Schema<IUser>(
         notificationPreferences: {
             push: {
                 type: Boolean,
-                default: true,
+                default: false,
             },
         },
         fcmTokens: {

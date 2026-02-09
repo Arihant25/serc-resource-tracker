@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     Dialog,
@@ -22,6 +22,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface ReservationDialogProps {
     open: boolean;
@@ -37,13 +38,29 @@ export function ReservationDialog({
     resourceName,
 }: ReservationDialogProps) {
     const router = useRouter();
+    const { requestPermission } = useNotifications();
     const [loading, setLoading] = useState(false);
+    const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
     const [startDate, setStartDate] = useState('');
     const [startTime, setStartTime] = useState('');
     const [endDate, setEndDate] = useState('');
     const [endTime, setEndTime] = useState('');
     const [reason, setReason] = useState('');
     const [priority, setPriority] = useState<'normal' | 'urgent'>('normal');
+
+    const handleEnableNotifications = async () => {
+        const success = await requestPermission();
+        if (success) {
+            // Update notification preferences to enabled
+            await fetch('/api/notifications/preferences', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ push: true }),
+            });
+            toast.success('Push notifications enabled! You\'ll be notified about your reservation updates.');
+        }
+        setShowNotificationPrompt(false);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -80,9 +97,15 @@ export function ReservationDialog({
             onOpenChange(false);
             router.refresh();
 
+            // Check if notifications are enabled, if not prompt user
+            if (typeof window !== 'undefined' && Notification.permission !== 'granted') {
+                setShowNotificationPrompt(true);
+            }
+
             // Reset form
             setStartDate('');
             setStartTime('');
+            setEndTime('');
             setEndDate('');
             setEndTime('');
             setReason('');
@@ -95,99 +118,121 @@ export function ReservationDialog({
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>Reserve Resource</DialogTitle>
-                    <DialogDescription>
-                        Request a reservation for {resourceName}. An admin will review your request.
-                    </DialogDescription>
-                </DialogHeader>
+        <>
+            <Dialog open={open} onOpenChange={onOpenChange}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Reserve Resource</DialogTitle>
+                        <DialogDescription>
+                            Request a reservation for {resourceName}. An admin will review your request.
+                        </DialogDescription>
+                    </DialogHeader>
 
-                <form onSubmit={handleSubmit}>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="startDate">Start Date</Label>
-                                <Input
-                                    id="startDate"
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    required
-                                />
+                    <form onSubmit={handleSubmit}>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="startDate">Start Date</Label>
+                                    <Input
+                                        id="startDate"
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="startTime">Start Time</Label>
+                                    <Input
+                                        id="startTime"
+                                        type="time"
+                                        value={startTime}
+                                        onChange={(e) => setStartTime(e.target.value)}
+                                        required
+                                    />
+                                </div>
                             </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="endDate">End Date</Label>
+                                    <Input
+                                        id="endDate"
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="endTime">End Time</Label>
+                                    <Input
+                                        id="endTime"
+                                        type="time"
+                                        value={endTime}
+                                        onChange={(e) => setEndTime(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
                             <div className="space-y-2">
-                                <Label htmlFor="startTime">Start Time</Label>
-                                <Input
-                                    id="startTime"
-                                    type="time"
-                                    value={startTime}
-                                    onChange={(e) => setStartTime(e.target.value)}
+                                <Label htmlFor="priority">Priority</Label>
+                                <Select value={priority} onValueChange={(v) => setPriority(v as 'normal' | 'urgent')}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="normal">Normal</SelectItem>
+                                        <SelectItem value="urgent">Urgent</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="reason">Reason for reservation</Label>
+                                <Textarea
+                                    id="reason"
+                                    placeholder="Describe why you need this resource..."
+                                    value={reason}
+                                    onChange={(e) => setReason(e.target.value)}
                                     required
+                                    rows={3}
                                 />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="endDate">End Date</Label>
-                                <Input
-                                    id="endDate"
-                                    type="date"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="endTime">End Time</Label>
-                                <Input
-                                    id="endTime"
-                                    type="time"
-                                    value={endTime}
-                                    onChange={(e) => setEndTime(e.target.value)}
-                                    required
-                                />
-                            </div>
-                        </div>
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={loading}>
+                                {loading ? 'Submitting...' : 'Submit Request'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="priority">Priority</Label>
-                            <Select value={priority} onValueChange={(v) => setPriority(v as 'normal' | 'urgent')}>
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="normal">Normal</SelectItem>
-                                    <SelectItem value="urgent">Urgent</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="reason">Reason for reservation</Label>
-                            <Textarea
-                                id="reason"
-                                placeholder="Describe why you need this resource..."
-                                value={reason}
-                                onChange={(e) => setReason(e.target.value)}
-                                required
-                                rows={3}
-                            />
-                        </div>
-                    </div>
-
+            {/* Notification Permission Prompt */}
+            <Dialog open={showNotificationPrompt} onOpenChange={setShowNotificationPrompt}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Stay Updated on Your Reservation</DialogTitle>
+                        <DialogDescription>
+                            Enable push notifications to receive updates about your reservation status, including when it's approved, upcoming reminders, and any changes.
+                        </DialogDescription>
+                    </DialogHeader>
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                            Cancel
+                        <Button type="button" variant="outline" onClick={() => setShowNotificationPrompt(false)}>
+                            Maybe Later
                         </Button>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? 'Submitting...' : 'Submit Request'}
+                        <Button type="button" onClick={handleEnableNotifications}>
+                            Enable Notifications
                         </Button>
                     </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }

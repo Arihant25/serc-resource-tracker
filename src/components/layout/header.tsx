@@ -69,7 +69,7 @@ export function Header() {
                                 </div>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
-                                    <Link href="/profile" className="cursor-pointer">Profile & Settings</Link>
+                                    <Link href="/profile" className="cursor-pointer">Settings</Link>
                                 </DropdownMenuItem>
                                 {user.isAdmin && (
                                     <DropdownMenuItem asChild>
