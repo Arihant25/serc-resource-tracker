@@ -163,7 +163,7 @@ export default function ProfilePage() {
                 const success = await requestPermission();
 
                 if (!success) {
-                    toast.error('Failed to enable notifications. Please allow notifications in your browser settings.');
+                    // Error is already shown by requestPermission
                     setPushEnabled(false);
                     return;
                 }
@@ -173,19 +173,25 @@ export default function ProfilePage() {
             }
 
             // Update preference in database
+            console.log('Updating notification preferences in database...');
             const res = await fetch('/api/notifications/preferences', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ push: enabled }),
             });
 
-            if (!res.ok) throw new Error('Failed to update preferences');
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(errorData.error || 'Failed to update preferences');
+            }
 
-            toast.success('Notification preferences updated');
+            console.log('Notification preferences updated successfully');
+            toast.success(`Notifications ${enabled ? 'enabled' : 'disabled'} successfully`);
             refreshUser();
         } catch (error) {
             console.error('Notification change error:', error);
-            toast.error('Failed to update preferences');
+            const errorMessage = error instanceof Error ? error.message : 'Failed to update notification preferences';
+            toast.error(errorMessage);
             setPushEnabled(!enabled);
         }
     };

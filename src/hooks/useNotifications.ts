@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { messaging } from '@/lib/firebase';
-import { getToken, onMessage } from 'firebase/messaging';
+import { getMessagingInstance } from '@/lib/firebase';
+import { getToken, onMessage, Messaging } from 'firebase/messaging';
 import { toast } from 'sonner';
 
 export function useNotifications() {
@@ -16,38 +16,56 @@ export function useNotifications() {
     }, []);
 
     const requestPermission = async (): Promise<boolean> => {
-        if (!messaging) {
-            console.error('Firebase messaging not supported');
-            return false;
-        }
-
         try {
-            const permission = await Notification.requestPermission();
-            setPermission(permission);
+            console.log('Requesting notification permission...');
 
-            if (permission === 'granted') {
-                const token = await getToken(messaging, {
-                    vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
-                });
-
-                if (token) {
-                    setFcmToken(token);
-
-                    // Save token to backend
-                    await fetch('/api/notifications/register-token', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ token }),
-                    });
-
-                    return true;
-                }
+            // Get messaging instance (waits for initialization)
+            const messaging = await getMessagingInstance();
+            if (!messaging) {
+                console.error('Firebase messaging not supported or failed to initialize');
+                throw new Error('Push notifications are not supported in this browser');
             }
 
-            return false;
+            console.log('Firebase messaging ready, requesting browser permission...');
+            const permission = await Notification.requestPermission();
+            setPermission(permission);
+            console.log('Browser permission result:', permission);
+
+            if (permission !== 'granted') {
+                throw new Error('Notification permission denied');
+            }
+
+            console.log('Getting FCM token...');
+            const token = await getToken(messaging, {
+                vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+            });
+
+            if (!token) {
+                throw new Error('Failed to get FCM token');
+            }
+
+            console.log('FCM token retrieved:', token.substring(0, 20) + '...');
+            setFcmToken(token);
+
+            // Save token to backend with error checking
+            console.log('Registering token with backend...');
+            const response = await fetch('/api/notifications/register-token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(errorData.error || `Failed to register token (${response.status})`);
+            }
+
+            console.log('Token registered successfully with backend');
+            return true;
         } catch (error) {
-            console.error('Error getting FCM token:', error);
-            toast.error('Failed to enable notifications');
+            console.error('Error enabling notifications:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to enable notifications';
+            toast.error(errorMessage);
             return false;
         }
     };
@@ -55,12 +73,19 @@ export function useNotifications() {
     const removeToken = async (): Promise<void> => {
         if (fcmToken) {
             try {
-                await fetch('/api/notifications/register-token', {
+                console.log('Removing FCM token from backend...');
+                const response = await fetch('/api/notifications/register-token', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token: fcmToken }),
                 });
+
+                if (!response.ok) {
+                    console.error('Failed to remove token from backend');
+                }
+
                 setFcmToken(null);
+                console.log('Token removed successfully');
             } catch (error) {
                 console.error('Error removing FCM token:', error);
             }
@@ -69,21 +94,37 @@ export function useNotifications() {
 
     // Listen for foreground messages
     useEffect(() => {
-        if (!messaging) return;
+        let unsubscribe: (() => void) | null = null;
 
-        const unsubscribe = onMessage(messaging, (payload) => {
-            console.log('Foreground message received:', payload);
+        // Initialize messaging and set up listener
+        const setupMessaging = async () => {
+            const messaging = await getMessagingInstance();
+            if (!messaging) {
+                console.warn('Cannot set up foreground message listener - messaging not available');
+                return;
+            }
 
-            const title = payload.notification?.title || 'SERC Resource Tracker';
-            const body = payload.notification?.body || 'You have a new notification';
+            console.log('Setting up foreground message listener...');
+            unsubscribe = onMessage(messaging, (payload) => {
+                console.log('Foreground message received:', payload);
 
-            toast(title, {
-                description: body,
-                duration: 5000,
+                const title = payload.notification?.title || 'SERC Resource Tracker';
+                const body = payload.notification?.body || 'You have a new notification';
+
+                toast(title, {
+                    description: body,
+                    duration: 5000,
+                });
             });
-        });
+        };
 
-        return () => unsubscribe();
+        setupMessaging();
+
+        return () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+        };
     }, []);
 
     return {
