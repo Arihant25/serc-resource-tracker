@@ -37,13 +37,13 @@ importScripts('https://www.gstatic.com/firebasejs/12.9.0/firebase-messaging-comp
 
 // Initialize Firebase in the service worker
 firebase.initializeApp({
-    apiKey: "${envVars.NEXT_PUBLIC_FIREBASE_API_KEY || ''}",
-    authDomain: "${envVars.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || ''}",
-    projectId: "${envVars.NEXT_PUBLIC_FIREBASE_PROJECT_ID || ''}",
-    storageBucket: "${envVars.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || ''}",
-    messagingSenderId: "${envVars.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || ''}",
-    appId: "${envVars.NEXT_PUBLIC_FIREBASE_APP_ID || ''}",
-    measurementId: "${envVars.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || ''}"
+    apiKey: "${envVars.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY || ''}",
+    authDomain: "${envVars.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || ''}",
+    projectId: "${envVars.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || ''}",
+    storageBucket: "${envVars.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || ''}",
+    messagingSenderId: "${envVars.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || ''}",
+    appId: "${envVars.NEXT_PUBLIC_FIREBASE_APP_ID || process.env.NEXT_PUBLIC_FIREBASE_APP_ID || ''}",
+    measurementId: "${envVars.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || ''}"
 });
 
 const messaging = firebase.messaging();
