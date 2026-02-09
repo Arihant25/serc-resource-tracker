@@ -171,7 +171,7 @@ export default function ResourcePage({ params }: { params: Promise<{ id: string 
                 Back
             </Button>
 
-            <div className="grid lg:grid-cols-3 gap-6">
+            <div className="grid lg:grid-cols-3 gap-3">
                 {/* Main Info */}
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
@@ -191,7 +191,7 @@ export default function ResourcePage({ params }: { params: Promise<{ id: string 
                         </CardHeader>
                         <CardContent>
                             {resource.image && (
-                                <div className="relative w-full max-w-[400px] mb-4 rounded-lg overflow-hidden bg-muted">
+                                <div className="relative w-full max-w-[400px] h-64 mb-4 rounded-lg overflow-hidden bg-muted">
                                     <Image
                                         src={resource.image}
                                         alt={resource.name}
