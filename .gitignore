@@ -23,6 +23,9 @@ bun-debug.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# Firebase service account keys
+*firebase-adminsdk*.json
+
 # vercel
 .vercel
 
