@@ -40,7 +40,7 @@ export function Header() {
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden bg-primary">
                             <Image src="/logo.png" alt="SERC Resource Tracker" width={36} height={36} className="h-full w-full object-cover" />
                         </div>
-                        <span className="font-bold text-xl hidden sm:inline-block text-[var(--byte-yellow)]">SERC Resource Tracker</span>
+                        <span className="font-bold text-xl hidden sm:inline-block text-black">SERC Resource Tracker</span>
                     </Link>
                 </div>
 

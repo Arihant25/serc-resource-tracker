@@ -25,9 +25,9 @@ export function HeroSection() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
-                    <Button asChild size="lg" className="h-14 px-8 text-lg rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all cursor-pointer">
+                    <Button asChild size="lg" className="h-14 px-12 text-lg rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all cursor-pointer">
                         <Link href="/login">
-                            Get Started <ArrowRight className="ml-2 w-5 h-5" />
+                            Get Started <ArrowRight className="mb-0.5 w-5 h-5" />
                         </Link>
                     </Button>
                     <Button asChild variant="outline" size="lg" className="h-14 px-8 text-lg rounded-full backdrop-blur-sm bg-background/50 hover:bg-background/80 cursor-pointer">
