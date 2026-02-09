@@ -41,12 +41,14 @@ export function CompleteReservationDialog({
                         variant="outline"
                         onClick={() => onOpenChange(false)}
                         disabled={loading}
+                        className="cursor-pointer"
                     >
                         Cancel
                     </Button>
                     <Button
                         onClick={onConfirm}
                         disabled={loading}
+                        className="cursor-pointer"
                     >
                         {loading ? 'Completing...' : 'Yes, Mark as Done'}
                     </Button>

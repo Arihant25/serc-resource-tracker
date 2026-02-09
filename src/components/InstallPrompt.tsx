@@ -64,10 +64,10 @@ export function InstallPrompt() {
                             Install our app for quick access and offline support
                         </p>
                         <div className="flex gap-2">
-                            <Button size="sm" onClick={handleInstall} className="flex-1">
+                            <Button size="sm" onClick={handleInstall} className="flex-1 cursor-pointer">
                                 Install
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={handleDismiss}>
+                            <Button size="sm" variant="ghost" onClick={handleDismiss} className="cursor-pointer">
                                 <X className="w-4 h-4" />
                             </Button>
                         </div>

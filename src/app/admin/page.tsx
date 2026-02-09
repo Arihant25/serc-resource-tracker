@@ -511,6 +511,7 @@ export default function AdminPage() {
                                                         <Button
                                                             size="sm"
                                                             onClick={() => handleReservation(res._id, 'approved')}
+                                                            className="cursor-pointer"
                                                         >
                                                             Approve
                                                         </Button>
@@ -518,6 +519,7 @@ export default function AdminPage() {
                                                             size="sm"
                                                             variant="outline"
                                                             onClick={() => handleReservation(res._id, 'rejected')}
+                                                            className="cursor-pointer"
                                                         >
                                                             Reject
                                                         </Button>

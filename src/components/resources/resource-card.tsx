@@ -97,7 +97,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
             </CardContent>
 
             <CardFooter className="pt-2">
-                <Button asChild className="w-full bg-yellow-400 hover:bg-yellow-500 text-black">
+                <Button asChild className="w-full bg-yellow-400 hover:bg-yellow-500 text-black cursor-pointer">
                     <Link href={`/resources/${resource._id}`}>View Details</Link>
                 </Button>
             </CardFooter>

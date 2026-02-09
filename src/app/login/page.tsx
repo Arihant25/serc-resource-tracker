@@ -134,7 +134,7 @@ export default function LoginPage() {
                         ))}
                     </div>
                     <div className="mt-4 flex justify-end">
-                        <Button onClick={() => setShowAdminDialog(false)}>Close</Button>
+                        <Button onClick={() => setShowAdminDialog(false)} className="cursor-pointer">Close</Button>
                     </div>
                 </DialogContent>
             </Dialog>
