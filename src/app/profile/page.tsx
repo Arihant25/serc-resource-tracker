@@ -52,7 +52,7 @@ export default function ProfilePage() {
     useEffect(() => {
         async function fetchReservations() {
             try {
-                const res = await fetch('/api/reservations');
+                const res = await fetch(`/api/reservations?userId=${user._id}`);
                 if (res.ok) {
                     const data = await res.json();
                     setReservations(data.reservations);
@@ -212,7 +212,7 @@ export default function ProfilePage() {
     };
 
     return (
-        <div className="container mx-auto py-8 px-4">
+        <div className="container mx-auto py-8 px-4 overflow-hidden">
             <h1 className="text-3xl font-bold mb-6">Profile & Settings</h1>
 
             <div className="grid lg:grid-cols-3 gap-6">
@@ -339,12 +339,12 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Reservations */}
-                <div className="lg:col-span-2">
+                <div className="lg:col-span-2 min-w-0">
                     <Card>
                         <CardHeader>
                             <CardTitle>My Reservations</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="overflow-hidden">
                             {loading ? (
                                 <div className="animate-pulse space-y-2">
                                     {[...Array(3)].map((_, i) => (
