@@ -86,9 +86,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             reservation.status = status;
             await reservation.save();
 
-            const populated: IReservation & { userId: { name: string; email: string }; resourceId: { name: string } } = await Reservation.findById(reservation._id)
+            const populated = await Reservation.findById(reservation._id)!
                 .populate('userId', 'name email')
-                .populate('resourceId', 'name');
+                .populate('resourceId', 'name') as unknown as IReservation & { userId: { name: string; email: string }; resourceId: { name: string } };
 
             // Send notification to user about approval/rejection
             try {
