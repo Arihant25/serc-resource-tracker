@@ -6,6 +6,7 @@ interface User {
     id: string;
     name: string;
     email: string;
+    profilePicture?: string;
     isAdmin: boolean;
     notificationPreferences?: {
         push: boolean;

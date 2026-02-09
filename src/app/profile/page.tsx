@@ -44,6 +44,9 @@ export default function ProfilePage() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [changingPassword, setChangingPassword] = useState(false);
 
+    const [profilePictureUrl, setProfilePictureUrl] = useState(user?.profilePicture ?? '');
+    const [updatingProfilePicture, setUpdatingProfilePicture] = useState(false);
+
     const [pushEnabled, setPushEnabled] = useState(user?.notificationPreferences?.push ?? true);
 
     useEffect(() => {
@@ -63,6 +66,7 @@ export default function ProfilePage() {
 
         if (user) {
             fetchReservations();
+            setProfilePictureUrl(user.profilePicture ?? '');
         }
     }, [user]);
 
@@ -100,6 +104,36 @@ export default function ProfilePage() {
             toast.error(error instanceof Error ? error.message : 'Failed to change password');
         } finally {
             setChangingPassword(false);
+        }
+    };
+
+    const handleUpdateProfilePicture = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!profilePictureUrl.trim()) {
+            toast.error('Please enter a valid URL');
+            return;
+        }
+
+        setUpdatingProfilePicture(true);
+        try {
+            const res = await fetch('/api/auth/update-profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ profilePicture: profilePictureUrl }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to update profile picture');
+            }
+
+            toast.success('Profile picture updated successfully');
+            refreshUser();
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to update profile picture');
+        } finally {
+            setUpdatingProfilePicture(false);
         }
     };
 
@@ -210,6 +244,44 @@ export default function ProfilePage() {
 
                     <Card>
                         <CardHeader>
+                            <CardTitle>Profile Picture</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {user.profilePicture && (
+                                <div className="flex justify-center mb-4">
+                                    <img
+                                        src={user.profilePicture}
+                                        alt="Profile"
+                                        className="w-24 h-24 rounded-full object-cover border-2 border-muted"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = '';
+                                        }}
+                                    />
+                                </div>
+                            )}
+                            <form onSubmit={handleUpdateProfilePicture} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="profilePictureUrl">Profile Picture URL</Label>
+                                    <Input
+                                        id="profilePictureUrl"
+                                        type="url"
+                                        placeholder="https://example.com/image.jpg"
+                                        value={profilePictureUrl}
+                                        onChange={(e) => setProfilePictureUrl(e.target.value)}
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        Enter the URL of your profile picture
+                                    </p>
+                                </div>
+                                <Button type="submit" disabled={updatingProfilePicture} className="w-full cursor-pointer">
+                                    {updatingProfilePicture ? 'Updating...' : 'Update Profile Picture'}
+                                </Button>
+                            </form>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
                             <CardTitle>Notifications</CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -220,7 +292,7 @@ export default function ProfilePage() {
                                         Receive push notifications for reservations
                                     </p>
                                 </div>
-                                <Switch checked={pushEnabled} onCheckedChange={handleNotificationChange} />
+                                <Switch checked={pushEnabled} onCheckedChange={handleNotificationChange} className="cursor-pointer" />
                             </div>
                         </CardContent>
                     </Card>
@@ -258,7 +330,7 @@ export default function ProfilePage() {
                                         required
                                     />
                                 </div>
-                                <Button type="submit" disabled={changingPassword}>
+                                <Button type="submit" disabled={changingPassword} className='cursor-pointer'>
                                     {changingPassword ? 'Changing...' : 'Change Password'}
                                 </Button>
                             </form>

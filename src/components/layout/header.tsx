@@ -11,7 +11,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 export function Header() {
     const { user, logout } = useAuth();
@@ -49,6 +49,12 @@ export function Header() {
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="relative h-10 w-10 rounded-full cursor-pointer">
                                     <Avatar className="h-10 w-10">
+                                        {user.profilePicture && (
+                                            <AvatarImage
+                                                src={user.profilePicture}
+                                                alt={user.name}
+                                            />
+                                        )}
                                         <AvatarFallback className="bg-primary text-primary-foreground">
                                             {getInitials(user.name)}
                                         </AvatarFallback>

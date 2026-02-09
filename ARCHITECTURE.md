@@ -21,6 +21,7 @@ This is a web app which will be used to track the resources available in SERC, I
             "name": "string",
             "email": "string",
             "password": "string",
+            "profilePicture": "string (optional, URL to profile picture)",
             "isAdmin": "boolean",
             "notificationPreferences": {
                 "email": "boolean",
@@ -93,8 +94,15 @@ When adding or editing resources, admins can specify:
 When a reservation is made, the admin has to approve it.
 
 ### Profile Page
-The web app has push notifications, and email notifications. They can be enabled/disabled by the user in the profile page. The user can also change their password here.
+The web app has push notifications and email notifications. They can be enabled/disabled by the user in the profile page. The user can also change their password here.
+The user can update their profile picture by providing an image URL.
 It also shows their past and current reservations. If a reservation is cancelled, it is deleted from the DB.
+
+**Profile Picture:**
+- Users can update their profile picture by entering an image URL in the profile settings
+- The URL is validated before being saved to the database
+- The profile picture is displayed in the header avatar (with fallback to user initials if not set)
+- Updating the profile picture reflects in real-time across the application
 
 ## Notifications
 

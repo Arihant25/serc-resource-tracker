@@ -5,6 +5,7 @@ export interface IUser extends Document {
     name: string;
     email: string;
     password?: string;
+    profilePicture?: string;
     isAdmin: boolean;
     notificationPreferences: {
         push: boolean;
@@ -31,6 +32,10 @@ const UserSchema = new Schema<IUser>(
         password: {
             type: String,
             select: false, // Don't include password by default in queries
+        },
+        profilePicture: {
+            type: String,
+            default: null,
         },
         isAdmin: {
             type: Boolean,
