@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -122,10 +123,11 @@ export default function ResourcePage({ params }: { params: Promise<{ id: string 
                         <CardContent>
                             {resource.image && (
                                 <div className="relative w-full max-w-[400px] mb-4 rounded-lg overflow-hidden bg-muted">
-                                    <img
+                                    <Image
                                         src={resource.image}
                                         alt={resource.name}
-                                        className="w-full h-auto object-cover"
+                                        fill
+                                        className="object-cover"
                                     />
                                 </div>
                             )}

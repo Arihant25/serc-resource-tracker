@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import Reservation from '@/models/Reservation';
+import Reservation, { IReservation } from '@/models/Reservation';
 import '@/models/Resource';
 import { getCurrentUser, requireAdmin } from '@/lib/auth';
 
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
             priority: priority || 'normal',
         });
 
-        const populated: any = await Reservation.findById(reservation._id)
+        const populated: IReservation & { userId: { name: string; email: string }; resourceId: { name: string } } = await Reservation.findById(reservation._id)
             .populate('userId', 'name email')
             .populate('resourceId', 'name');
 

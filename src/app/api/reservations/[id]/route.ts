@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import Reservation from '@/models/Reservation';
+import Reservation, { IReservation } from '@/models/Reservation';
 import '@/models/Resource';
-import { getCurrentUser, requireAdmin } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -86,7 +86,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             reservation.status = status;
             await reservation.save();
 
-            const populated: any = await Reservation.findById(reservation._id)
+            const populated: IReservation & { userId: { name: string; email: string }; resourceId: { name: string } } = await Reservation.findById(reservation._id)
                 .populate('userId', 'name email')
                 .populate('resourceId', 'name');
 

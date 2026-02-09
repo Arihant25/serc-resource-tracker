@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getMessagingInstance } from '@/lib/firebase';
-import { getToken, onMessage, Messaging } from 'firebase/messaging';
+import { getToken, onMessage } from 'firebase/messaging';
 import { toast } from 'sonner';
 
 export function useNotifications() {
@@ -40,7 +40,10 @@ export function useNotifications() {
             }
 
             console.log('Registering Firebase service worker...');
-            const serviceWorkerRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+            await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+
+            // Wait for the service worker to be active
+            const serviceWorkerRegistration = await navigator.serviceWorker.ready;
 
             console.log('Getting FCM token...');
             const token = await getToken(messaging, {

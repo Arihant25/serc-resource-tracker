@@ -1,4 +1,4 @@
-import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import { getMessaging, Messaging, isSupported } from 'firebase/messaging';
 
 const firebaseConfig = {
@@ -12,16 +12,13 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-let app: FirebaseApp;
 let messagingInstance: Messaging | null = null;
 let messagingPromise: Promise<Messaging | null> | null = null;
 
 if (typeof window !== 'undefined') {
     // Only initialize on client side
     if (!getApps().length) {
-        app = initializeApp(firebaseConfig);
-    } else {
-        app = getApps()[0];
+        initializeApp(firebaseConfig);
     }
 }
 

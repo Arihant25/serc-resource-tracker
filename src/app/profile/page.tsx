@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import {
     Table,
@@ -35,7 +35,7 @@ interface Reservation {
 export default function ProfilePage() {
     const { user, loading: authLoading, refreshUser } = useAuth();
     const router = useRouter();
-    const { requestPermission, removeToken, permission } = useNotifications();
+    const { requestPermission, removeToken } = useNotifications();
     const [reservations, setReservations] = useState<Reservation[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -258,9 +258,11 @@ export default function ProfilePage() {
                         <CardContent className="space-y-4">
                             {user.profilePicture && (
                                 <div className="flex justify-center mb-4">
-                                    <img
+                                    <Image
                                         src={user.profilePicture}
                                         alt="Profile"
+                                        width={96}
+                                        height={96}
                                         className="w-24 h-24 rounded-full object-cover border-2 border-muted"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).src = '';

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,7 +38,7 @@ export function Header() {
                 <div className="flex items-center gap-6">
                     <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2 cursor-pointer">
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden bg-primary">
-                            <img src="/logo.png" alt="SERC Tracker" className="h-full w-full object-cover" />
+                            <Image src="/logo.png" alt="SERC Tracker" width={36} height={36} className="h-full w-full object-cover" />
                         </div>
                         <span className="font-bold text-xl hidden sm:inline-block">SERC Tracker</span>
                     </Link>

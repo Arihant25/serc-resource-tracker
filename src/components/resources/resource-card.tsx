@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -47,10 +48,11 @@ export function ResourceCard({ resource }: ResourceCardProps) {
             <CardContent className="flex-1">
                 {resource.image && (
                     <div className="relative w-full h-64 mb-3 rounded-md overflow-hidden bg-muted">
-                        <img
+                        <Image
                             src={resource.image}
                             alt={resource.name}
-                            className="object-cover w-full h-full"
+                            fill
+                            className="object-cover"
                         />
                     </div>
                 )}
