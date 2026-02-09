@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
     Table,
     TableBody,
@@ -216,6 +216,15 @@ export default function ProfilePage() {
             (reservation.status === 'approved' && start > now);
     };
 
+    const getInitials = (name: string) => {
+        return name
+            .split(' ')
+            .map((n) => n[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+    };
+
     const handleCompleteReservation = async () => {
         if (!selectedReservation) return;
 
@@ -309,20 +318,14 @@ export default function ProfilePage() {
                             <CardTitle>Profile Picture</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {user.profilePicture && (
-                                <div className="flex justify-center mb-4">
-                                    <Image
-                                        src={user.profilePicture}
-                                        alt="Profile"
-                                        width={96}
-                                        height={96}
-                                        className="w-24 h-24 rounded-full object-cover border-2 border-muted"
-                                        onError={(e) => {
-                                            (e.target as HTMLImageElement).src = '';
-                                        }}
-                                    />
-                                </div>
-                            )}
+                            <div className="flex justify-center mb-4">
+                                <Avatar className="w-24 h-24 border-2 border-muted">
+                                    <AvatarImage src={user.profilePicture || ''} alt="Profile" className="object-cover" />
+                                    <AvatarFallback className="text-xl bg-primary text-primary-foreground">
+                                        {getInitials(user.name)}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </div>
                             <form onSubmit={handleUpdateProfilePicture} className="space-y-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="profilePictureUrl">Profile Picture URL</Label>

@@ -28,11 +28,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { ImageUpload } from '@/components/ui/image-upload';
 import ReactMarkdown from 'react-markdown';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface User {
     _id: string;
     name: string;
     email: string;
+    profilePicture?: string;
     isAdmin: boolean;
     createdAt: string;
 }
@@ -62,11 +64,23 @@ interface Reservation {
     createdAt: string;
 }
 
+interface AnalyticsData {
+    topReserversByCount: { name: string; email: string; value: number }[];
+    topReserversByTime: { name: string; email: string; value: number }[];
+    topResourcesByCount: { name: string; value: number }[];
+    topResourcesByTime: { name: string; value: number }[];
+}
+
 export default function AdminPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [resources, setResources] = useState<Resource[]>([]);
     const [reservations, setReservations] = useState<Reservation[]>([]);
+    const [logs, setLogs] = useState<Reservation[]>([]);
+    const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const [logsSearch, setLogsSearch] = useState('');
+    const [logsStatus, setLogsStatus] = useState('all');
 
     // User dialog
     const [userDialogOpen, setUserDialogOpen] = useState(false);
@@ -89,34 +103,95 @@ export default function AdminPage() {
     const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
-        fetchData();
+        fetchInitialData();
     }, []);
 
-    async function fetchData() {
-        setLoading(true);
-        try {
-            const [usersRes, resourcesRes, reservationsRes] = await Promise.all([
-                fetch('/api/users'),
-                fetch('/api/resources'),
-                fetch('/api/reservations?status=pending'),
-            ]);
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            fetchLogs();
+        }, 500);
+        return () => clearTimeout(timeout);
+    }, [logsSearch, logsStatus]);
 
-            if (usersRes.ok) {
-                const data = await usersRes.json();
+    async function fetchUsers() {
+        try {
+            const res = await fetch('/api/users');
+            if (res.ok) {
+                const data = await res.json();
                 setUsers(data.users);
             }
-            if (resourcesRes.ok) {
-                const data = await resourcesRes.json();
+        } catch (error) {
+            console.error('Failed to fetch users:', error);
+        }
+    }
+
+    async function fetchResources() {
+        try {
+            const res = await fetch('/api/resources');
+            if (res.ok) {
+                const data = await res.json();
                 setResources(data.resources);
             }
-            if (reservationsRes.ok) {
-                const data = await reservationsRes.json();
+        } catch (error) {
+            console.error('Failed to fetch resources:', error);
+        }
+    }
+
+    async function fetchReservations() {
+        try {
+            const res = await fetch('/api/reservations?status=pending');
+            if (res.ok) {
+                const data = await res.json();
                 setReservations(data.reservations);
             }
         } catch (error) {
-            console.error('Failed to fetch data:', error);
+            console.error('Failed to fetch reservations:', error);
+        }
+    }
+
+    async function fetchAnalytics() {
+        try {
+            const res = await fetch('/api/analytics');
+            if (res.ok) {
+                const data = await res.json();
+                setAnalytics(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch analytics:', error);
+        }
+    }
+
+    async function fetchInitialData() {
+        setLoading(true);
+        try {
+            await Promise.all([
+                fetchUsers(),
+                fetchResources(),
+                fetchReservations(),
+                fetchAnalytics(),
+            ]);
+            // Initial logs fetch
+            fetchLogs();
+        } catch (error) {
+            console.error('Failed to fetch initial data:', error);
         } finally {
             setLoading(false);
+        }
+    }
+
+    async function fetchLogs() {
+        try {
+            let url = `/api/reservations?status=${logsStatus}`;
+            if (logsSearch) {
+                url += `&search=${encodeURIComponent(logsSearch)}`;
+            }
+            const res = await fetch(url);
+            if (res.ok) {
+                const data = await res.json();
+                setLogs(data.reservations);
+            }
+        } catch (error) {
+            console.error('Failed to fetch logs:', error);
         }
     }
 
@@ -151,7 +226,7 @@ export default function AdminPage() {
 
             toast.success(editingUser ? 'User updated' : 'User created');
             setUserDialogOpen(false);
-            fetchData();
+            fetchUsers();
         } catch {
             toast.error('Failed to save user');
         }
@@ -163,7 +238,7 @@ export default function AdminPage() {
             const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
             if (!res.ok) throw new Error('Failed to delete user');
             toast.success('User deleted');
-            fetchData();
+            fetchUsers();
         } catch {
             toast.error('Failed to delete user');
         }
@@ -219,7 +294,7 @@ export default function AdminPage() {
 
             toast.success(editingResource ? 'Resource updated' : 'Resource created');
             setResourceDialogOpen(false);
-            fetchData();
+            fetchResources();
         } catch {
             toast.error('Failed to save resource');
         }
@@ -231,7 +306,7 @@ export default function AdminPage() {
             const res = await fetch(`/api/resources/${id}`, { method: 'DELETE' });
             if (!res.ok) throw new Error('Failed to delete resource');
             toast.success('Resource deleted');
-            fetchData();
+            fetchResources();
         } catch {
             toast.error('Failed to delete resource');
         }
@@ -252,7 +327,9 @@ export default function AdminPage() {
             }
 
             toast.success(`Reservation ${status}`);
-            fetchData();
+            fetchReservations();
+            fetchAnalytics();
+            fetchLogs();
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to update reservation');
         }
@@ -285,6 +362,8 @@ export default function AdminPage() {
                     </TabsTrigger>
                     <TabsTrigger value="users" className="cursor-pointer">Users ({users.length})</TabsTrigger>
                     <TabsTrigger value="resources" className="cursor-pointer">Resources ({resources.length})</TabsTrigger>
+                    <TabsTrigger value="analysis" className="cursor-pointer">Analysis</TabsTrigger>
+                    <TabsTrigger value="logs" className="cursor-pointer">Logs</TabsTrigger>
                 </TabsList>
 
                 {/* Pending Reservations Tab */}
@@ -366,6 +445,7 @@ export default function AdminPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
+                                        <TableHead className="w-[50px]"></TableHead>
                                         <TableHead>Name</TableHead>
                                         <TableHead>Email</TableHead>
                                         <TableHead>Role</TableHead>
@@ -376,6 +456,12 @@ export default function AdminPage() {
                                 <TableBody>
                                     {users.map((user) => (
                                         <TableRow key={user._id}>
+                                            <TableCell>
+                                                <Avatar>
+                                                    <AvatarImage src={user.profilePicture} alt={user.name} />
+                                                    <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                                                </Avatar>
+                                            </TableCell>
                                             <TableCell className="font-medium">{user.name}</TableCell>
                                             <TableCell>{user.email}</TableCell>
                                             <TableCell>
@@ -460,6 +546,203 @@ export default function AdminPage() {
                                                         Delete
                                                     </Button>
                                                 </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="analysis">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+                        {/* Top Reservers by Count */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Top Reservers (Count)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead className="text-right">Reservations</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {analytics?.topReserversByCount.map((user, i) => (
+                                            <TableRow key={i}>
+                                                <TableCell className="font-medium">
+                                                    <div>
+                                                        <p>{user.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-right">{user.value}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+
+                        {/* Top Reservers by Time */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Top Reservers (Time)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead className="text-right">Duration (Hours)</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {analytics?.topReserversByTime.map((user, i) => (
+                                            <TableRow key={i}>
+                                                <TableCell className="font-medium">
+                                                    <div>
+                                                        <p>{user.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {(user.value / (1000 * 60 * 60)).toFixed(1)}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+
+                        {/* Top Resources by Count */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Top Resources (Count)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Resource</TableHead>
+                                            <TableHead className="text-right">Reservations</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {analytics?.topResourcesByCount.map((res, i) => (
+                                            <TableRow key={i}>
+                                                <TableCell className="font-medium">{res.name}</TableCell>
+                                                <TableCell className="text-right">{res.value}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+
+                        {/* Top Resources by Time */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Top Resources (Time)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Resource</TableHead>
+                                            <TableHead className="text-right">Duration (Hours)</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {analytics?.topResourcesByTime.map((res, i) => (
+                                            <TableRow key={i}>
+                                                <TableCell className="font-medium">{res.name}</TableCell>
+                                                <TableCell className="text-right">
+                                                    {(res.value / (1000 * 60 * 60)).toFixed(1)}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="logs">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle>Reservation Logs</CardTitle>
+                            <div className="flex items-center space-x-2">
+                                <Input
+                                    placeholder="Search user or resource..."
+                                    className="w-[250px]"
+                                    value={logsSearch}
+                                    onChange={(e) => setLogsSearch(e.target.value)}
+                                />
+                                <select
+                                    className="h-9 w-[150px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    value={logsStatus}
+                                    onChange={(e) => setLogsStatus(e.target.value)}
+                                >
+                                    <option value="all">All Statuses</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Resource</TableHead>
+                                        <TableHead>User</TableHead>
+                                        <TableHead>Time</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Priority</TableHead>
+                                        <TableHead>Date Created</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {logs.map((res) => (
+                                        <TableRow key={res._id}>
+                                            <TableCell className="font-medium">{res.resourceId.name}</TableCell>
+                                            <TableCell>
+                                                <div>
+                                                    <p>{res.userId.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{res.userId.email}</p>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-sm">
+                                                {format(new Date(res.startTime), 'MMM d, HH:mm')} -
+                                                <br />
+                                                {format(new Date(res.endTime), 'MMM d, HH:mm')}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge
+                                                    variant={
+                                                        res.status === 'approved'
+                                                            ? 'default'
+                                                            : res.status === 'rejected'
+                                                                ? 'destructive'
+                                                                : 'secondary'
+                                                    }
+                                                >
+                                                    {res.status}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant={res.priority === 'urgent' ? 'destructive' : 'secondary'}>
+                                                    {res.priority}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-xs text-muted-foreground">
+                                                {format(new Date(res.createdAt), 'MMM d, yyyy HH:mm')}
                                             </TableCell>
                                         </TableRow>
                                     ))}

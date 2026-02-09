@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Reservation, { IReservation } from '@/models/Reservation';
-import '@/models/Resource';
+import Resource from '@/models/Resource';
+import User from '@/models/User';
 import { getCurrentUser, requireAdmin } from '@/lib/auth';
 
 // GET reservations
@@ -19,17 +20,46 @@ export async function GET(request: NextRequest) {
         const userId = searchParams.get('userId');
         const resourceId = searchParams.get('resourceId');
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const query: any = {};
 
         // Non-admins can only see their own reservations
         if (!user.isAdmin) {
             query.userId = user._id;
-        } else if (userId && userId !== 'undefined') {
-            query.userId = userId;
+        } else {
+            // Admin filters
+            if (userId && userId !== 'undefined') {
+                query.userId = userId;
+            }
+
+            // Search functionality
+            const search = searchParams.get('search');
+            if (search) {
+                // Find users matching name or email
+                const users = await User.find({
+                    $or: [
+                        { name: { $regex: search, $options: 'i' } },
+                        { email: { $regex: search, $options: 'i' } }
+                    ]
+                }).select('_id');
+
+                const userIds = users.map(u => u._id);
+
+                // Find resources matching name
+                const resources = await Resource.find({
+                    name: { $regex: search, $options: 'i' }
+                }).select('_id');
+
+                const resourceIds = resources.map(r => r._id);
+
+                query.$or = [
+                    { userId: { $in: userIds } },
+                    { resourceId: { $in: resourceIds } },
+                    { reason: { $regex: search, $options: 'i' } }
+                ];
+            }
         }
 
-        if (status) query.status = status;
+        if (status && status !== 'all') query.status = status;
         if (resourceId) query.resourceId = resourceId;
 
         const reservations = await Reservation.find(query)
