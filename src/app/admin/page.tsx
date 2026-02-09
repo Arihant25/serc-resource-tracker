@@ -36,6 +36,7 @@ interface User {
     email: string;
     profilePicture?: string;
     isAdmin: boolean;
+    isApproved: boolean;
     createdAt: string;
 }
 
@@ -244,6 +245,35 @@ export default function AdminPage() {
         }
     };
 
+    const handleApproveUser = async (user: User) => {
+        try {
+            const res = await fetch(`/api/users/${user._id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isApproved: true }),
+            });
+
+            if (!res.ok) throw new Error('Failed to approve user');
+
+            toast.success('User approved');
+            fetchUsers();
+        } catch {
+            toast.error('Failed to approve user');
+        }
+    };
+
+    const handleRejectUser = async (user: User) => {
+        if (!confirm(`Are you sure you want to REJECT ${user.name}? This will DELETE their account.`)) return;
+        try {
+            const res = await fetch(`/api/users/${user._id}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error('Failed to reject user');
+            toast.success('User rejected and deleted');
+            fetchUsers();
+        } catch {
+            toast.error('Failed to reject user');
+        }
+    };
+
     // Resource handlers
     const openResourceDialog = (resource?: Resource) => {
         if (resource) {
@@ -360,11 +390,79 @@ export default function AdminPage() {
                             </Badge>
                         )}
                     </TabsTrigger>
-                    <TabsTrigger value="users" className="cursor-pointer">Users ({users.length})</TabsTrigger>
+                    <TabsTrigger value="pending-users" className="cursor-pointer">
+                        Pending Users
+                        {users.filter(u => !u.isApproved).length > 0 && (
+                            <Badge variant="destructive" className="ml-2">
+                                {users.filter(u => !u.isApproved).length}
+                            </Badge>
+                        )}
+                    </TabsTrigger>
+                    <TabsTrigger value="users" className="cursor-pointer">Users ({users.filter(u => u.isApproved).length})</TabsTrigger>
                     <TabsTrigger value="resources" className="cursor-pointer">Resources ({resources.length})</TabsTrigger>
                     <TabsTrigger value="analysis" className="cursor-pointer">Analysis</TabsTrigger>
                     <TabsTrigger value="logs" className="cursor-pointer">Logs</TabsTrigger>
                 </TabsList>
+
+                {/* Pending Users Tab */}
+                <TabsContent value="pending-users">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Pending User Approvals</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {users.filter(u => !u.isApproved).length === 0 ? (
+                                <p className="text-muted-foreground">No pending users</p>
+                            ) : (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="w-[50px]"></TableHead>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Email</TableHead>
+                                            <TableHead>Created</TableHead>
+                                            <TableHead>Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {users.filter(u => !u.isApproved).map((user) => (
+                                            <TableRow key={user._id}>
+                                                <TableCell>
+                                                    <Avatar>
+                                                        <AvatarImage src={user.profilePicture} alt={user.name} />
+                                                        <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                                                    </Avatar>
+                                                </TableCell>
+                                                <TableCell className="font-medium">{user.name}</TableCell>
+                                                <TableCell>{user.email}</TableCell>
+                                                <TableCell>{format(new Date(user.createdAt), 'MMM d, yyyy')}</TableCell>
+                                                <TableCell>
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={() => handleApproveUser(user)}
+                                                            className="cursor-pointer"
+                                                        >
+                                                            Approve
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="destructive"
+                                                            onClick={() => handleRejectUser(user)}
+                                                            className="cursor-pointer"
+                                                        >
+                                                            Reject
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
 
                 {/* Pending Reservations Tab */}
                 <TabsContent value="reservations">
@@ -454,7 +552,7 @@ export default function AdminPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {users.map((user) => (
+                                    {users.filter(u => u.isApproved).map((user) => (
                                         <TableRow key={user._id}>
                                             <TableCell>
                                                 <Avatar>

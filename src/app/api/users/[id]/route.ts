@@ -49,6 +49,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         if (name) user.name = name;
         if (email) user.email = email.toLowerCase();
         if (typeof isAdmin === 'boolean') user.isAdmin = isAdmin;
+        if (typeof body.isApproved === 'boolean') user.isApproved = body.isApproved;
         if (password) user.password = await hashPassword(password);
 
         await user.save();

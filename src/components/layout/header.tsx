@@ -68,14 +68,14 @@ export function Header() {
                                     <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                                 </div>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem asChild>
-                                    <Link href="/profile" className="cursor-pointer">Settings</Link>
-                                </DropdownMenuItem>
                                 {user.isAdmin && (
                                     <DropdownMenuItem asChild>
                                         <Link href="/admin" className="cursor-pointer">Admin</Link>
                                     </DropdownMenuItem>
                                 )}
+                                <DropdownMenuItem asChild>
+                                    <Link href="/profile" className="cursor-pointer">Settings</Link>
+                                </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                     onClick={handleLogout}

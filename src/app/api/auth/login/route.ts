@@ -28,10 +28,19 @@ export async function POST(request: NextRequest) {
             await user.save();
         } else {
             // Verify password
-            const isValid = await verifyPassword(password, user.password);
             if (!isValid) {
                 return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
             }
+        }
+
+        // Check for approval
+        if (!user.isApproved) {
+            // Fetch admins to show contact info
+            const admins = await User.find({ isAdmin: true }).select('name email');
+            return NextResponse.json({
+                error: 'Approval Pending',
+                admins: admins.map(a => ({ name: a.name, email: a.email }))
+            }, { status: 403 });
         }
 
         // Generate token

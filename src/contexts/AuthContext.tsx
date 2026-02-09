@@ -62,7 +62,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (!res.ok) {
             const data = await res.json();
-            throw new Error(data.error || 'Login failed');
+            const error = new Error(data.error || 'Login failed');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (error as any).admins = data.admins;
+            throw error;
         }
 
         const data = await res.json();

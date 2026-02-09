@@ -11,6 +11,7 @@ export interface IUser extends Document {
         push: boolean;
     };
     fcmTokens: string[];
+    isApproved: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -50,6 +51,10 @@ const UserSchema = new Schema<IUser>(
         fcmTokens: {
             type: [String],
             default: [],
+        },
+        isApproved: {
+            type: Boolean,
+            default: false,
         },
     },
     {

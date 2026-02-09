@@ -7,7 +7,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from 'sonner';
+
+interface AdminContact {
+    name: string;
+    email: string;
+}
 
 export default function LoginPage() {
     const router = useRouter();
@@ -15,6 +27,8 @@ export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showAdminDialog, setShowAdminDialog] = useState(false);
+    const [adminList, setAdminList] = useState<AdminContact[]>([]);
 
     // Redirect if already authenticated
     useEffect(() => {
@@ -46,7 +60,14 @@ export default function LoginPage() {
             toast.success('Welcome back!');
             router.push('/dashboard');
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Login failed');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const err = error as any;
+            if (err.admins) {
+                setAdminList(err.admins);
+                setShowAdminDialog(true);
+            } else {
+                toast.error(error instanceof Error ? error.message : 'Login failed');
+            }
         } finally {
             setLoading(false);
         }
@@ -94,6 +115,29 @@ export default function LoginPage() {
                     </form>
                 </CardContent>
             </Card>
+
+            <Dialog open={showAdminDialog} onOpenChange={setShowAdminDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Account Pending Approval</DialogTitle>
+                        <DialogDescription>
+                            Your account needs to be approved by an administrator before you can log in.
+                            Please contact one of the following admins:
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="mt-4 space-y-3">
+                        {adminList.map((admin, idx) => (
+                            <div key={idx} className="flex flex-col bg-muted p-3 rounded-md">
+                                <span className="font-medium">{admin.name}</span>
+                                <span className="text-sm text-muted-foreground">{admin.email}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-4 flex justify-end">
+                        <Button onClick={() => setShowAdminDialog(false)}>Close</Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
