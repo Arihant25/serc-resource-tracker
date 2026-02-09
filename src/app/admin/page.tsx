@@ -40,6 +40,11 @@ interface Resource {
     name: string;
     description: string;
     image?: string;
+    collegeId?: string;
+    isComputer?: boolean;
+    systemUser?: string;
+    systemIp?: string;
+    password?: string;
     createdAt: string;
 }
 
@@ -74,6 +79,12 @@ export default function AdminPage() {
     const [resourceName, setResourceName] = useState('');
     const [resourceDescription, setResourceDescription] = useState('');
     const [resourceImage, setResourceImage] = useState('');
+    const [resourceCollegeId, setResourceCollegeId] = useState('');
+    const [resourceIsComputer, setResourceIsComputer] = useState(false);
+    const [resourceSystemUser, setResourceSystemUser] = useState('');
+    const [resourceSystemIp, setResourceSystemIp] = useState('');
+    const [resourcePassword, setResourcePassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -163,11 +174,21 @@ export default function AdminPage() {
             setResourceName(resource.name);
             setResourceDescription(resource.description);
             setResourceImage(resource.image || '');
+            setResourceCollegeId(resource.collegeId || '');
+            setResourceIsComputer(resource.isComputer || false);
+            setResourceSystemUser(resource.systemUser || '');
+            setResourceSystemIp(resource.systemIp || '');
+            setResourcePassword(resource.password || '');
         } else {
             setEditingResource(null);
             setResourceName('');
             setResourceDescription('');
             setResourceImage('');
+            setResourceCollegeId('');
+            setResourceIsComputer(false);
+            setResourceSystemUser('');
+            setResourceSystemIp('');
+            setResourcePassword('');
         }
         setResourceDialogOpen(true);
     };
@@ -184,6 +205,11 @@ export default function AdminPage() {
                     name: resourceName,
                     description: resourceDescription,
                     image: resourceImage || undefined,
+                    collegeId: resourceCollegeId || undefined,
+                    isComputer: resourceIsComputer,
+                    systemUser: resourceIsComputer ? (resourceSystemUser || undefined) : undefined,
+                    systemIp: resourceIsComputer ? (resourceSystemIp || undefined) : undefined,
+                    password: resourceIsComputer ? (resourcePassword || undefined) : undefined,
                 }),
             });
 
@@ -247,7 +273,7 @@ export default function AdminPage() {
 
             <Tabs defaultValue="reservations">
                 <TabsList className="mb-4">
-                    <TabsTrigger value="reservations">
+                    <TabsTrigger value="reservations" className="cursor-pointer">
                         Pending Reservations
                         {reservations.length > 0 && (
                             <Badge variant="destructive" className="ml-2">
@@ -255,8 +281,8 @@ export default function AdminPage() {
                             </Badge>
                         )}
                     </TabsTrigger>
-                    <TabsTrigger value="users">Users ({users.length})</TabsTrigger>
-                    <TabsTrigger value="resources">Resources ({resources.length})</TabsTrigger>
+                    <TabsTrigger value="users" className="cursor-pointer">Users ({users.length})</TabsTrigger>
+                    <TabsTrigger value="resources" className="cursor-pointer">Resources ({resources.length})</TabsTrigger>
                 </TabsList>
 
                 {/* Pending Reservations Tab */}
@@ -332,7 +358,7 @@ export default function AdminPage() {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle>Users</CardTitle>
-                            <Button onClick={() => openUserDialog()}>Add User</Button>
+                            <Button onClick={() => openUserDialog()}  className="cursor-pointer">Add User</Button>
                         </CardHeader>
                         <CardContent>
                             <Table>
@@ -358,13 +384,19 @@ export default function AdminPage() {
                                             <TableCell>{format(new Date(user.createdAt), 'MMM d, yyyy')}</TableCell>
                                             <TableCell>
                                                 <div className="flex gap-2">
-                                                    <Button size="sm" variant="outline" onClick={() => openUserDialog(user)}>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => openUserDialog(user)}
+                                                        className="cursor-pointer"
+                                                    >
                                                         Edit
                                                     </Button>
                                                     <Button
                                                         size="sm"
                                                         variant="destructive"
                                                         onClick={() => handleDeleteUser(user._id)}
+                                                        className="cursor-pointer"
                                                     >
                                                         Delete
                                                     </Button>
@@ -383,7 +415,7 @@ export default function AdminPage() {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle>Resources</CardTitle>
-                            <Button onClick={() => openResourceDialog()}>Add Resource</Button>
+                            <Button onClick={() => openResourceDialog()} className="cursor-pointer">Add Resource</Button>
                         </CardHeader>
                         <CardContent>
                             <Table>
@@ -407,6 +439,7 @@ export default function AdminPage() {
                                                         size="sm"
                                                         variant="outline"
                                                         onClick={() => openResourceDialog(resource)}
+                                                        className="cursor-pointer"
                                                     >
                                                         Edit
                                                     </Button>
@@ -414,6 +447,7 @@ export default function AdminPage() {
                                                         size="sm"
                                                         variant="destructive"
                                                         onClick={() => handleDeleteResource(resource._id)}
+                                                        className="cursor-pointer"
                                                     >
                                                         Delete
                                                     </Button>
@@ -457,10 +491,10 @@ export default function AdminPage() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setUserDialogOpen(false)}>
+                        <Button variant="outline" onClick={() => setUserDialogOpen(false)} className="cursor-pointer">
                             Cancel
                         </Button>
-                        <Button onClick={handleSaveUser}>Save</Button>
+                        <Button onClick={handleSaveUser} className="cursor-pointer">Save</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -492,12 +526,68 @@ export default function AdminPage() {
                                 placeholder="https://... or data:image/..."
                             />
                         </div>
+                        <div className="space-y-2">
+                            <Label>College ID (optional)</Label>
+                            <Input
+                                value={resourceCollegeId}
+                                onChange={(e) => setResourceCollegeId(e.target.value)}
+                                placeholder="Enter college ID"
+                            />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Checkbox
+                                id="isComputer"
+                                checked={resourceIsComputer}
+                                onCheckedChange={(c) => setResourceIsComputer(c === true)}
+                            />
+                            <Label htmlFor="isComputer">This is a computer</Label>
+                        </div>
+                        {resourceIsComputer && (
+                            <>
+                                <div className="space-y-2">
+                                    <Label>User</Label>
+                                    <Input
+                                        value={resourceSystemUser}
+                                        onChange={(e) => setResourceSystemUser(e.target.value)}
+                                        placeholder="e.g. admin"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>System IP</Label>
+                                    <Input
+                                        value={resourceSystemIp}
+                                        onChange={(e) => setResourceSystemIp(e.target.value)}
+                                        placeholder="e.g. 192.168.1.100"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Password</Label>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            type={showPassword ? 'text' : 'password'}
+                                            value={resourcePassword}
+                                            onChange={(e) => setResourcePassword(e.target.value)}
+                                            placeholder="Enter system password"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="shrink-0 cursor-pointer"
+                                            onClick={() => setShowPassword((v) => !v)}
+                                        >
+                                            {showPassword ? 'Hide' : 'Show'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setResourceDialogOpen(false)}>
+                        <Button variant="outline" onClick={() => setResourceDialogOpen(false)} className="cursor-pointer">
                             Cancel
                         </Button>
-                        <Button onClick={handleSaveResource}>Save</Button>
+                        <Button onClick={handleSaveResource} className="cursor-pointer">Save</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

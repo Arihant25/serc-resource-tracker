@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Resource from '@/models/Resource';
@@ -36,8 +37,21 @@ export async function GET() {
                     .sort({ startTime: 1 })
                     .limit(3);
 
+                // Check if current user has an active reservation for this resource
+                const hasActiveReservation = user.isAdmin || !!(currentReservation &&
+                    currentReservation.userId &&
+                    (currentReservation.userId as unknown as { _id: mongoose.Types.ObjectId })._id.toString() === user._id.toString());
+
+                const resourceObj = resource.toObject();
+                // Strip computer details if user doesn't have an active reservation
+                if (!hasActiveReservation) {
+                    delete resourceObj.systemUser;
+                    delete resourceObj.systemIp;
+                    delete resourceObj.password;
+                }
+
                 return {
-                    ...resource.toObject(),
+                    ...resourceObj,
                     isAvailable: !currentReservation,
                     currentReservation: currentReservation
                         ? {
@@ -71,7 +85,7 @@ export async function POST(request: NextRequest) {
     try {
         await requireAdmin();
         const body = await request.json();
-        const { name, description, image } = body;
+        const { name, description, image, collegeId, isComputer, systemUser, systemIp, password } = body;
 
         if (!name || !description) {
             return NextResponse.json({ error: 'Name and description are required' }, { status: 400 });
@@ -83,6 +97,11 @@ export async function POST(request: NextRequest) {
             name,
             description,
             image,
+            collegeId,
+            isComputer,
+            systemUser: isComputer ? systemUser : undefined,
+            systemIp: isComputer ? systemIp : undefined,
+            password: isComputer ? password : undefined,
         });
 
         return NextResponse.json({ resource }, { status: 201 });

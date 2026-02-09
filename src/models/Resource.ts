@@ -5,6 +5,11 @@ export interface IResource extends Document {
     name: string;
     description: string;
     image?: string; // Base64 encoded, max 2MB
+    collegeId?: string;
+    isComputer?: boolean;
+    systemUser?: string;
+    systemIp?: string;
+    password?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -31,6 +36,26 @@ const ResourceSchema = new Schema<IResource>(
                 },
                 message: 'Image must be under 2MB',
             },
+        },
+        collegeId: {
+            type: String,
+            trim: true,
+        },
+        isComputer: {
+            type: Boolean,
+            default: false,
+        },
+        systemUser: {
+            type: String,
+            trim: true,
+        },
+        systemIp: {
+            type: String,
+            trim: true,
+        },
+        password: {
+            type: String,
+            trim: true,
         },
     },
     {

@@ -34,7 +34,12 @@ This is a web app which will be used to track the resources available in SERC, I
             "_id": "ObjectId",
             "name": "string",
             "description": "string",
-            "image": "string" (2MB max, base64 encoded)
+            "image": "string (2MB max, base64 encoded)",
+            "collegeId": "string (optional)",
+            "isComputer": "boolean",
+            "systemUser": "string (only visible to admins or users with active reservation)",
+            "systemIp": "string (only visible to admins or users with active reservation)",
+            "password": "string (only visible to admins or users with active reservation)"
         }
     ],
     "reservations": [
@@ -45,8 +50,8 @@ This is a web app which will be used to track the resources available in SERC, I
             "startTime": "Date",
             "endTime": "Date",
             "date_created": "Date",
-            "status": "pending|approved|rejected"
-            "priority": "urgent|normal"
+            "status": "pending|approved|rejected",
+            "priority": "urgent|normal",
             "reason": "string"
         }
     ]
@@ -68,11 +73,22 @@ It contains the list of all resources, represented as cards. It also shows which
 ### Resource Page
 It contains the details of a specific resource. It also shows the future reservations and reservation history of the resource for the last 1 year. It has a reserve button that opens a popup to reserve the resource for a set duration, with reason textbox and priority dropdown (Urgent / Normal).
 
+**Computer Resources:** If a resource is marked as a computer, it can optionally have system details (username, IP address, and password) that are only visible to:
+- Admins (always visible)
+- Users with active approved reservations for that resource
+
+This ensures sensitive information is protected while allowing authorized users to access the system when needed.
+
 ### Admin Page
 It contains the list of all resources and users.
 It has options to add, edit, and remove resources and users.
 To add a user, the admin has to provide the name, email, and whether the user is an admin or not.
-While logging in for the first time, the user has to provide a password, which is hasshed and stored in the DB.
+While logging in for the first time, the user has to provide a password, which is hashed and stored in the DB.
+
+When adding or editing resources, admins can specify:
+- Basic info: name, description, image, and college ID (optional)
+- Computer settings: toggle if it's a computer resource
+- System details (if computer): username, system IP, and password
 
 When a reservation is made, the admin has to approve it.
 

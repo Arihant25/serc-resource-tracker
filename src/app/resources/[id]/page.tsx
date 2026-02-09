@@ -31,6 +31,10 @@ interface Resource {
     name: string;
     description: string;
     image?: string;
+    isComputer?: boolean;
+    systemUser?: string;
+    systemIp?: string;
+    password?: string;
     isAvailable: boolean;
     currentReservation: Reservation | null;
     futureReservations: Reservation[];
@@ -80,8 +84,21 @@ export default function ResourcePage({ params }: { params: Promise<{ id: string 
 
     return (
         <div className="container mx-auto py-8 px-4">
-            <Button variant="ghost" onClick={() => router.back()} className="mb-4">
-                ← Back
+            <Button variant="ghost" onClick={() => router.back()} className="mb-4 cursor-pointer">
+                {/* TODO: better icon */}
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="mb-0.5 h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l-7-7 7-7" />
+                </svg>
+                Back
             </Button>
 
             <div className="grid lg:grid-cols-3 gap-6">
@@ -99,20 +116,43 @@ export default function ResourcePage({ params }: { params: Promise<{ id: string 
                                         {resource.isAvailable ? 'Available' : 'In Use'}
                                     </Badge>
                                 </div>
-                                <Button onClick={() => setDialogOpen(true)}>Reserve</Button>
+                                <Button onClick={() => setDialogOpen(true)} className="cursor-pointer">Reserve</Button>
                             </div>
                         </CardHeader>
                         <CardContent>
                             {resource.image && (
-                                <div className="relative w-full h-64 mb-4 rounded-lg overflow-hidden bg-muted">
+                                <div className="relative w-full max-w-[400px] mb-4 rounded-lg overflow-hidden bg-muted">
                                     <img
                                         src={resource.image}
                                         alt={resource.name}
-                                        className="object-cover w-full h-full"
+                                        className="w-full h-auto object-cover"
                                     />
                                 </div>
                             )}
                             <p className="text-muted-foreground">{resource.description}</p>
+                            {resource.isComputer && (resource.systemUser || resource.systemIp || resource.password) && (
+                                <div className="mt-4 p-4 rounded-lg border bg-muted/50 space-y-2">
+                                    <p className="font-medium text-sm">Computer Details</p>
+                                    {resource.systemUser && (
+                                        <p className="text-sm">
+                                            <span className="font-medium">User:</span>{' '}
+                                            <code className="bg-muted px-1.5 py-0.5 rounded text-sm">{resource.systemUser}</code>
+                                        </p>
+                                    )}
+                                    {resource.systemIp && (
+                                        <p className="text-sm">
+                                            <span className="font-medium">System IP:</span>{' '}
+                                            <code className="bg-muted px-1.5 py-0.5 rounded text-sm">{resource.systemIp}</code>
+                                        </p>
+                                    )}
+                                    {resource.password && (
+                                        <p className="text-sm">
+                                            <span className="font-medium">Password:</span>{' '}
+                                            <code className="bg-muted px-1.5 py-0.5 rounded text-sm">{resource.password}</code>
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 

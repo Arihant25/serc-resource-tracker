@@ -53,9 +53,26 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             .populate('userId', 'name email')
             .sort({ endTime: -1 });
 
+        // Check if the current user has an active approved reservation for this resource
+        const hasActiveReservation = user.isAdmin || await Reservation.exists({
+            resourceId: resource._id,
+            userId: user._id,
+            status: 'approved',
+            startTime: { $lte: now },
+            endTime: { $gte: now },
+        });
+
+        const resourceObj = resource.toObject();
+        // Strip computer details if user doesn't have an active reservation
+        if (!hasActiveReservation) {
+            delete resourceObj.systemUser;
+            delete resourceObj.systemIp;
+            delete resourceObj.password;
+        }
+
         return NextResponse.json({
             resource: {
-                ...resource.toObject(),
+                ...resourceObj,
                 isAvailable: !currentReservation,
                 currentReservation: currentReservation
                     ? {
@@ -97,7 +114,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         await requireAdmin();
         const { id } = await params;
         const body = await request.json();
-        const { name, description, image } = body;
+        const { name, description, image, collegeId, isComputer, systemUser, systemIp, password } = body;
 
         await connectDB();
 
@@ -109,6 +126,17 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         if (name) resource.name = name;
         if (description) resource.description = description;
         if (image !== undefined) resource.image = image;
+        if (collegeId !== undefined) resource.collegeId = collegeId;
+        if (isComputer !== undefined) resource.isComputer = isComputer;
+        if (isComputer) {
+            if (systemUser !== undefined) resource.systemUser = systemUser;
+            if (systemIp !== undefined) resource.systemIp = systemIp;
+            if (password !== undefined) resource.password = password;
+        } else if (isComputer === false) {
+            resource.systemUser = undefined;
+            resource.systemIp = undefined;
+            resource.password = undefined;
+        }
 
         await resource.save();
 
