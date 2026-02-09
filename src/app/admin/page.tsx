@@ -491,8 +491,8 @@ export default function AdminPage() {
                                                 <TableCell className="font-medium">{res.resourceId.name}</TableCell>
                                                 <TableCell>
                                                     <div>
-                                                        <p>{res.userId.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{res.userId.email}</p>
+                                                        <p>{res.userId?.name || 'Deleted User'}</p>
+                                                        <p className="text-xs text-muted-foreground">{res.userId?.email || 'N/A'}</p>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-sm">
@@ -812,8 +812,8 @@ export default function AdminPage() {
                                             <TableCell className="font-medium">{res.resourceId.name}</TableCell>
                                             <TableCell>
                                                 <div>
-                                                    <p>{res.userId.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{res.userId.email}</p>
+                                                    <p>{res.userId?.name || 'Deleted User'}</p>
+                                                    <p className="text-xs text-muted-foreground">{res.userId?.email || 'N/A'}</p>
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-sm">

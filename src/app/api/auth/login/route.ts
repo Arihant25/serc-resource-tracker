@@ -14,11 +14,28 @@ export async function POST(request: NextRequest) {
 
         await connectDB();
 
-        // Find user and include password for verification
-        const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+        // Find user and include password for verification, or create if not exists
+        let user = await User.findOne({ email: email.toLowerCase() }).select('+password');
 
         if (!user) {
-            return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+            // Auto-register new user
+            const name = email.split('@')[0]; // Derive name from email
+            const hashedPassword = await hashPassword(password);
+
+            user = await User.create({
+                name,
+                email: email.toLowerCase(),
+                password: hashedPassword,
+                isApproved: false,
+                isAdmin: false, // Default to non-admin
+            });
+
+            // Fetch admins to show contact info
+            const admins = await User.find({ isAdmin: true }).select('name email');
+            return NextResponse.json({
+                error: 'Approval Pending',
+                admins: admins.map(a => ({ name: a.name, email: a.email }))
+            }, { status: 403 });
         }
 
         // Check if this is first-time login (no password set)
@@ -27,14 +44,27 @@ export async function POST(request: NextRequest) {
             user.password = await hashPassword(password);
             await user.save();
         } else {
-            // Verify password
+            // If user exists but is NOT approved, update their password
+            if (!user.isApproved) {
+                user.password = await hashPassword(password);
+                await user.save();
+
+                // Fetch admins to show contact info
+                const admins = await User.find({ isAdmin: true }).select('name email');
+                return NextResponse.json({
+                    error: 'Approval Pending',
+                    admins: admins.map(a => ({ name: a.name, email: a.email }))
+                }, { status: 403 });
+            }
+
+            // Verify password for approved users
             const isValid = await verifyPassword(password, user.password);
             if (!isValid) {
                 return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
             }
         }
 
-        // Check for approval
+        // Check for approval (double check, though mainly handled above)
         if (!user.isApproved) {
             // Fetch admins to show contact info
             const admins = await User.find({ isAdmin: true }).select('name email');

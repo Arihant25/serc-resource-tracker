@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import Reservation from '@/models/Reservation';
 import { requireAdmin, hashPassword } from '@/lib/auth';
 
 interface RouteParams {
@@ -78,6 +79,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         await requireAdmin();
         const { id } = await params;
         await connectDB();
+
+        // Delete associated reservations first
+        await Reservation.deleteMany({ userId: id });
 
         const user = await User.findByIdAndDelete(id);
         if (!user) {
