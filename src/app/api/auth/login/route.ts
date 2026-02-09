@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
             await user.save();
         } else {
             // Verify password
+            const isValid = await verifyPassword(password, user.password);
             if (!isValid) {
                 return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
             }
