@@ -232,7 +232,7 @@ export default function AdminPage() {
 
     if (loading) {
         return (
-            <div className="container py-8">
+            <div className="container mx-auto py-8 px-4">
                 <div className="animate-pulse space-y-4">
                     <div className="h-8 w-48 bg-muted rounded" />
                     <div className="h-64 bg-muted rounded" />
@@ -242,7 +242,7 @@ export default function AdminPage() {
     }
 
     return (
-        <div className="container py-8">
+        <div className="container mx-auto py-8 px-4">
             <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
 
             <Tabs defaultValue="reservations">

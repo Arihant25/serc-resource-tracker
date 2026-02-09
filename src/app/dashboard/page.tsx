@@ -57,7 +57,7 @@ export default function DashboardPage() {
     );
 
     return (
-        <div className="container py-8">
+        <div className="container mx-auto py-8 px-4">
             <div className="flex flex-col gap-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>

@@ -2,11 +2,9 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-// Routes that don't require authentication
-const publicRoutes = ['/', '/login', '/api/auth/login'];
-
 // Routes that require admin access
-const adminRoutes = ['/admin', '/api/users', '/api/resources/create'];
+const adminRoutes = ['/admin'];
+const adminApiRoutes = ['/api/users', '/api/resources/create'];
 
 interface JWTPayload {
     userId: string;
@@ -24,52 +22,104 @@ async function verifyTokenEdge(token: string): Promise<JWTPayload | null> {
     }
 }
 
+function clearTokenCookie(response: NextResponse): NextResponse {
+    response.cookies.set('auth_token', '', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 0,
+        path: '/',
+    });
+    return response;
+}
+
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    // Allow public routes
-    if (publicRoutes.some((route) => pathname === route || pathname.startsWith('/api/auth'))) {
+    // Allow static files, Next.js internals, and public assets
+    if (
+        pathname.startsWith('/_next') ||
+        pathname.startsWith('/favicon') ||
+        pathname.startsWith('/icons') ||
+        pathname.startsWith('/manifest') ||
+        pathname.includes('.')
+    ) {
         return NextResponse.next();
     }
 
-    // Allow static files and API health check
-    if (pathname.startsWith('/_next') || pathname.startsWith('/favicon') || pathname === '/api/health') {
-        return NextResponse.next();
-    }
-
-    // Get auth token
     const token = request.cookies.get('auth_token')?.value;
+    const payload = token ? await verifyTokenEdge(token) : null;
+    const hasInvalidToken = !!token && !payload;
 
-    if (!token) {
-        // Redirect to login for page requests
-        if (!pathname.startsWith('/api')) {
-            return NextResponse.redirect(new URL('/login', request.url));
+    // --- Public routes (no auth required) ---
+
+    // Home page: always accessible
+    if (pathname === '/') {
+        return NextResponse.next();
+    }
+
+    // Login page: redirect to dashboard if already authenticated
+    if (pathname === '/login') {
+        if (payload) {
+            return NextResponse.redirect(new URL('/dashboard', request.url));
         }
-        // Return 401 for API requests
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        // If token was invalid, clear it while showing login
+        if (hasInvalidToken) {
+            return clearTokenCookie(NextResponse.next());
+        }
+        return NextResponse.next();
     }
 
-    // Verify token using jose (edge-compatible)
-    const payload = await verifyTokenEdge(token);
+    // All /api/auth/* routes are public (login, logout, me, change-password)
+    if (pathname.startsWith('/api/auth')) {
+        // If token is invalid, clear it on the response
+        if (hasInvalidToken) {
+            return clearTokenCookie(NextResponse.next());
+        }
+        return NextResponse.next();
+    }
+
+    // Health check
+    if (pathname === '/api/health') {
+        return NextResponse.next();
+    }
+
+    // --- Protected routes (auth required) ---
+
     if (!payload) {
-        // Clear invalid token and redirect
-        const response = pathname.startsWith('/api')
-            ? NextResponse.json({ error: 'Invalid token' }, { status: 401 })
-            : NextResponse.redirect(new URL('/login', request.url));
-        response.cookies.delete('auth_token');
-        return response;
+        if (hasInvalidToken) {
+            // Token exists but is invalid — clear it
+            if (pathname.startsWith('/api')) {
+                return clearTokenCookie(
+                    NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+                );
+            }
+            return clearTokenCookie(
+                NextResponse.redirect(new URL('/login', request.url))
+            );
+        }
+        // No token at all
+        if (pathname.startsWith('/api')) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    // Check admin routes
+    // --- Admin routes ---
+
     if (adminRoutes.some((route) => pathname.startsWith(route))) {
         if (!payload.isAdmin) {
-            if (pathname.startsWith('/api')) {
-                return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-            }
             return NextResponse.redirect(new URL('/dashboard', request.url));
         }
     }
 
+    if (adminApiRoutes.some((route) => pathname.startsWith(route))) {
+        if (!payload.isAdmin) {
+            return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+        }
+    }
+
+    // Authenticated user, allow through
     return NextResponse.next();
 }
 

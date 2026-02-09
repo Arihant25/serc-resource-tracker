@@ -49,7 +49,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <Header />
-          <main className="flex-1">{children}</main>
+            <main className="flex-1">{children}</main>
           <Footer />
           <Toaster position="top-right" />
           <InstallPrompt />

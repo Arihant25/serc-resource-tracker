@@ -33,7 +33,7 @@ interface Reservation {
 }
 
 export default function ProfilePage() {
-    const { user, refreshUser } = useAuth();
+    const { user, loading: authLoading, refreshUser } = useAuth();
     const router = useRouter();
     const { requestPermission, removeToken, permission } = useNotifications();
     const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -153,6 +153,14 @@ export default function ProfilePage() {
         }
     };
 
+    if (authLoading) {
+        return (
+            <div className="container mx-auto flex items-center justify-center min-h-[calc(100vh-8rem)] py-8">
+                <div>Loading...</div>
+            </div>
+        );
+    }
+
     if (!user) {
         router.push('/login');
         return null;
@@ -170,7 +178,7 @@ export default function ProfilePage() {
     };
 
     return (
-        <div className="container py-8">
+        <div className="container mx-auto py-8 px-4">
             <h1 className="text-3xl font-bold mb-6">Profile & Settings</h1>
 
             <div className="grid lg:grid-cols-3 gap-6">

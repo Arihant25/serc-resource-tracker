@@ -67,7 +67,7 @@ export default function ResourcePage({ params }: { params: Promise<{ id: string 
 
     if (loading) {
         return (
-            <div className="container py-8">
+            <div className="container mx-auto py-8 px-4">
                 <Skeleton className="h-8 w-48 mb-4" />
                 <Skeleton className="h-64 w-full" />
             </div>
@@ -79,7 +79,7 @@ export default function ResourcePage({ params }: { params: Promise<{ id: string 
     }
 
     return (
-        <div className="container py-8">
+        <div className="container mx-auto py-8 px-4">
             <Button variant="ghost" onClick={() => router.back()} className="mb-4">
                 ← Back
             </Button>

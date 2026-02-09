@@ -28,10 +28,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const refreshUser = async () => {
         try {
-            const res = await fetch('/api/auth/me');
-            const data = await res.json();
-            setUser(data.user || null);
-        } catch {
+            const res = await fetch('/api/auth/me', {
+                credentials: 'include',
+                cache: 'no-store'
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setUser(data.user || null);
+            } else {
+                setUser(null);
+            }
+        } catch (error) {
+            console.error('Error refreshing user:', error);
             setUser(null);
         } finally {
             setLoading(false);
@@ -46,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const res = await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ email, password }),
         });
 
@@ -59,8 +69,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const logout = async () => {
-        await fetch('/api/auth/logout', { method: 'POST' });
-        setUser(null);
+        try {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            setUser(null);
+        }
     };
 
     return (

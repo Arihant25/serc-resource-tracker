@@ -41,11 +41,8 @@ export async function POST(request: NextRequest) {
             isAdmin: user.isAdmin,
         });
 
-        // Set cookie
-        await setAuthCookie(token);
-
-        // Return user info (without password)
-        return NextResponse.json({
+        // Return user info with cookie set
+        const response = NextResponse.json({
             user: {
                 id: user._id,
                 name: user.name,
@@ -53,6 +50,17 @@ export async function POST(request: NextRequest) {
                 isAdmin: user.isAdmin,
             },
         });
+
+        // Set cookie on response
+        response.cookies.set('auth_token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+            path: '/',
+        });
+
+        return response;
     } catch (error) {
         console.error('Login error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

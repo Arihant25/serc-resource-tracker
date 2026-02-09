@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,7 +15,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 export function Header() {
     const { user, logout } = useAuth();
-    const pathname = usePathname();
     const router = useRouter();
 
     const handleLogout = async () => {
@@ -32,46 +31,23 @@ export function Header() {
             .slice(0, 2);
     };
 
-    const isActive = (path: string) => pathname === path;
-
     return (
-        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-16 items-center justify-between">
+        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex justify-center">
+            <div className="px-4 container flex h-16 items-center justify-between">
                 <div className="flex items-center gap-6">
-                    <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2">
+                    <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2 cursor-pointer">
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
                             S
                         </div>
                         <span className="font-semibold text-lg hidden sm:inline-block">SERC Tracker</span>
                     </Link>
-
-                    {user && (
-                        <nav className="hidden md:flex items-center gap-4">
-                            <Link
-                                href="/dashboard"
-                                className={`text-sm font-medium transition-colors hover:text-primary ${isActive('/dashboard') ? 'text-primary' : 'text-muted-foreground'
-                                    }`}
-                            >
-                                Dashboard
-                            </Link>
-                            {user.isAdmin && (
-                                <Link
-                                    href="/admin"
-                                    className={`text-sm font-medium transition-colors hover:text-primary ${isActive('/admin') ? 'text-primary' : 'text-muted-foreground'
-                                        }`}
-                                >
-                                    Admin
-                                </Link>
-                            )}
-                        </nav>
-                    )}
                 </div>
 
                 <div className="flex items-center gap-4">
                     {user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                                <Button variant="ghost" className="relative h-10 w-10 rounded-full cursor-pointer">
                                     <Avatar className="h-10 w-10">
                                         <AvatarFallback className="bg-primary text-primary-foreground">
                                             {getInitials(user.name)}
@@ -86,25 +62,25 @@ export function Header() {
                                 </div>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
-                                    <Link href="/profile">Profile & Settings</Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild className="md:hidden">
-                                    <Link href="/dashboard">Dashboard</Link>
+                                    <Link href="/profile" className="cursor-pointer">Profile & Settings</Link>
                                 </DropdownMenuItem>
                                 {user.isAdmin && (
-                                    <DropdownMenuItem asChild className="md:hidden">
-                                        <Link href="/admin">Admin</Link>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/admin" className="cursor-pointer">Admin</Link>
                                     </DropdownMenuItem>
                                 )}
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                                <DropdownMenuItem
+                                    onClick={handleLogout}
+                                    className="text-red-600 cursor-pointer data-[highlighted]:bg-red-50 data-[highlighted]:text-red-600"
+                                >
                                     Log out
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     ) : (
                         <Button asChild>
-                            <Link href="/login">Sign In</Link>
+                            <Link href="/login" className="cursor-pointer">Sign In</Link>
                         </Button>
                     )}
                 </div>

@@ -5,9 +5,9 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 md:py-32">
+      <section className="w-full relative overflow-hidden py-20 md:py-32">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
-        <div className="container relative">
+        <div className="container mx-auto relative">
           <div className="flex flex-col items-center text-center space-y-8">
             <div className="space-y-4 max-w-3xl">
               <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
@@ -33,7 +33,7 @@ export default function LandingPage() {
 
       {/* Features Section */}
       <section className="py-16 md:py-24 bg-muted/50">
-        <div className="container">
+        <div className="container mx-auto">
           <h2 className="text-2xl font-bold text-center mb-12">How It Works</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="flex flex-col items-center text-center p-6 rounded-lg bg-background shadow-sm">
@@ -69,7 +69,7 @@ export default function LandingPage() {
 
       {/* CTA Section */}
       <section className="py-16 md:py-24">
-        <div className="container">
+        <div className="container mx-auto">
           <div className="rounded-2xl bg-primary p-8 md:p-12 text-center text-primary-foreground">
             <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to get started?</h2>
             <p className="text-primary-foreground/80 mb-6 max-w-lg mx-auto">
