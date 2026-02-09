@@ -210,10 +210,10 @@ export function ReservationDialog({
                         </div>
 
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={loading}>
+                            <Button type="submit" disabled={loading} className="cursor-pointer">
                                 {loading ? 'Submitting...' : 'Submit Request'}
                             </Button>
                         </DialogFooter>
@@ -231,10 +231,10 @@ export function ReservationDialog({
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => setShowNotificationPrompt(false)}>
+                        <Button type="button" variant="outline" onClick={() => setShowNotificationPrompt(false)} className="cursor-pointer">
                             Maybe Later
                         </Button>
-                        <Button type="button" onClick={handleEnableNotifications}>
+                        <Button type="button" onClick={handleEnableNotifications} className="cursor-pointer">
                             Enable Notifications
                         </Button>
                     </DialogFooter>
