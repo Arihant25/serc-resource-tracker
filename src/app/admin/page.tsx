@@ -26,6 +26,8 @@ import {
 } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
+import { ImageUpload } from '@/components/ui/image-upload';
+import ReactMarkdown from 'react-markdown';
 
 interface User {
     _id: string;
@@ -358,7 +360,7 @@ export default function AdminPage() {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle>Users</CardTitle>
-                            <Button onClick={() => openUserDialog()}  className="cursor-pointer">Add User</Button>
+                            <Button onClick={() => openUserDialog()} className="cursor-pointer">Add User</Button>
                         </CardHeader>
                         <CardContent>
                             <Table>
@@ -431,7 +433,13 @@ export default function AdminPage() {
                                     {resources.map((resource) => (
                                         <TableRow key={resource._id}>
                                             <TableCell className="font-medium">{resource.name}</TableCell>
-                                            <TableCell className="max-w-xs truncate">{resource.description}</TableCell>
+                                            <TableCell className="max-w-xs">
+                                                <div className="prose dark:prose-invert max-w-none text-sm text-muted-foreground line-clamp-3 [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 [&>li]:m-0">
+                                                    <ReactMarkdown disallowedElements={['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img']}>
+                                                        {resource.description}
+                                                    </ReactMarkdown>
+                                                </div>
+                                            </TableCell>
                                             <TableCell>{format(new Date(resource.createdAt), 'MMM d, yyyy')}</TableCell>
                                             <TableCell>
                                                 <div className="flex gap-2">
@@ -501,30 +509,14 @@ export default function AdminPage() {
 
             {/* Resource Dialog */}
             <Dialog open={resourceDialogOpen} onOpenChange={setResourceDialogOpen}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>{editingResource ? 'Edit Resource' : 'Add Resource'}</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
+                    <div className="grid grid-cols-2 gap-4 py-4">
                         <div className="space-y-2">
                             <Label>Name</Label>
                             <Input value={resourceName} onChange={(e) => setResourceName(e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Description</Label>
-                            <Textarea
-                                value={resourceDescription}
-                                onChange={(e) => setResourceDescription(e.target.value)}
-                                rows={3}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Image URL (optional)</Label>
-                            <Input
-                                value={resourceImage}
-                                onChange={(e) => setResourceImage(e.target.value)}
-                                placeholder="https://... or data:image/..."
-                            />
                         </div>
                         <div className="space-y-2">
                             <Label>College ID (optional)</Label>
@@ -534,7 +526,22 @@ export default function AdminPage() {
                                 placeholder="Enter college ID"
                             />
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="space-y-2 col-span-2">
+                            <Label>Description</Label>
+                            <Textarea
+                                value={resourceDescription}
+                                onChange={(e) => setResourceDescription(e.target.value)}
+                                rows={3}
+                            />
+                        </div>
+                        <div className="space-y-2 col-span-2">
+                            <Label>Image (optional)</Label>
+                            <ImageUpload
+                                value={resourceImage}
+                                onChange={(url: string) => setResourceImage(url)}
+                            />
+                        </div>
+                        <div className="flex items-center gap-2 col-span-2 py-2">
                             <Checkbox
                                 id="isComputer"
                                 checked={resourceIsComputer}
@@ -560,7 +567,7 @@ export default function AdminPage() {
                                         placeholder="e.g. 192.168.1.100"
                                     />
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-2 col-span-2">
                                     <Label>Password</Label>
                                     <div className="flex gap-2">
                                         <Input

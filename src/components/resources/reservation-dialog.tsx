@@ -69,6 +69,13 @@ export function ReservationDialog({
         try {
             const startDateTime = new Date(`${startDate}T${startTime}`);
             const endDateTime = new Date(`${endDate}T${endTime}`);
+            const now = new Date();
+
+            if (startDateTime < now) {
+                toast.error('Cannot create reservations in the past');
+                setLoading(false);
+                return;
+            }
 
             if (endDateTime <= startDateTime) {
                 toast.error('End time must be after start time');

@@ -21,6 +21,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { toast } from 'sonner';
+import { CompleteReservationDialog } from '@/components/resources/complete-reservation-dialog';
 
 interface Reservation {
     _id: string;
@@ -48,6 +49,10 @@ export default function ProfilePage() {
     const [updatingProfilePicture, setUpdatingProfilePicture] = useState(false);
 
     const [pushEnabled, setPushEnabled] = useState(user?.notificationPreferences?.push ?? true);
+
+    const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
+    const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+    const [completing, setCompleting] = useState(false);
 
     useEffect(() => {
         if (!user) {
@@ -193,6 +198,54 @@ export default function ProfilePage() {
             const errorMessage = error instanceof Error ? error.message : 'Failed to update notification preferences';
             toast.error(errorMessage);
             setPushEnabled(!enabled);
+        }
+    };
+
+    const isReservationActive = (reservation: Reservation) => {
+        const now = new Date();
+        const start = new Date(reservation.startTime);
+        const end = new Date(reservation.endTime);
+        return reservation.status === 'approved' && start <= now && now < end;
+    };
+
+    const canCancelReservation = (reservation: Reservation) => {
+        const now = new Date();
+        const start = new Date(reservation.startTime);
+        // Can cancel if pending OR if approved but hasn't started yet
+        return reservation.status === 'pending' ||
+            (reservation.status === 'approved' && start > now);
+    };
+
+    const handleCompleteReservation = async () => {
+        if (!selectedReservation) return;
+
+        setCompleting(true);
+        try {
+            const res = await fetch(`/api/reservations/${selectedReservation._id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'complete' }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to complete reservation');
+            }
+
+            toast.success('Reservation marked as complete!');
+            setCompleteDialogOpen(false);
+            setSelectedReservation(null);
+
+            // Refresh reservations
+            const refreshRes = await fetch(`/api/reservations?userId=${user!.id}`);
+            if (refreshRes.ok) {
+                const data = await refreshRes.json();
+                setReservations(data.reservations);
+            }
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to complete reservation');
+        } finally {
+            setCompleting(false);
         }
     };
 
@@ -393,15 +446,31 @@ export default function ProfilePage() {
                                                     <Badge variant={getStatusColor(res.status)}>{res.status}</Badge>
                                                 </TableCell>
                                                 <TableCell>
-                                                    {res.status === 'pending' && (
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => handleCancelReservation(res._id)}
-                                                        >
-                                                            Cancel
-                                                        </Button>
-                                                    )}
+                                                    <div className="flex gap-2">
+                                                        {canCancelReservation(res) && (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => handleCancelReservation(res._id)}
+                                                                className="cursor-pointer"
+                                                            >
+                                                                Cancel
+                                                            </Button>
+                                                        )}
+                                                        {isReservationActive(res) && (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="default"
+                                                                onClick={() => {
+                                                                    setSelectedReservation(res);
+                                                                    setCompleteDialogOpen(true);
+                                                                }}
+                                                                className="cursor-pointer"
+                                                            >
+                                                                Mark as Done
+                                                            </Button>
+                                                        )}
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -412,6 +481,14 @@ export default function ProfilePage() {
                     </Card>
                 </div>
             </div>
+
+            <CompleteReservationDialog
+                open={completeDialogOpen}
+                onOpenChange={setCompleteDialogOpen}
+                onConfirm={handleCompleteReservation}
+                loading={completing}
+                resourceName={selectedReservation?.resourceId.name || ''}
+            />
         </div>
     );
 }

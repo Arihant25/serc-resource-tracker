@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -7,8 +8,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,79 +48,142 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Design System Colors */
+  --foss-mint: oklch(0.66 0.18 155);
+  /* #08B74F */
+  --libre-white: oklch(1 0 0);
+  /* #FFFFFF */
+  --code-night: oklch(0.15 0 0);
+  /* #1A1A1A */
+  --open-gray: oklch(0.18 0 0);
+  /* #1E1E1E */
+  --pixel-blue: oklch(0.62 0.18 250);
+  /* #2E90FA */
+  --flame-red: oklch(0.60 0.22 25);
+  /* #F04438 */
+  --byte-yellow: oklch(0.85 0.14 85);
+  /* #FEC84B */
+
+  --radius: 0.5rem;
+  --background: var(--libre-white);
+  --foreground: var(--code-night);
+  --card: var(--libre-white);
+  --card-foreground: var(--code-night);
+  --popover: var(--libre-white);
+  --popover-foreground: var(--code-night);
+  --primary: var(--foss-mint);
+  --primary-foreground: var(--libre-white);
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: var(--code-night);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.50 0 0);
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: var(--code-night);
+  --destructive: var(--flame-red);
+  --border: oklch(0.90 0 0);
+  --input: oklch(0.90 0 0);
+  --ring: var(--foss-mint);
+  --chart-1: var(--foss-mint);
+  --chart-2: var(--pixel-blue);
+  --chart-3: var(--byte-yellow);
+  --chart-4: oklch(0.70 0.15 300);
+  --chart-5: oklch(0.65 0.12 180);
+  --sidebar: var(--libre-white);
+  --sidebar-foreground: var(--code-night);
+  --sidebar-primary: var(--foss-mint);
+  --sidebar-primary-foreground: var(--libre-white);
+  --sidebar-accent: oklch(0.96 0 0);
+  --sidebar-accent-foreground: var(--code-night);
+  --sidebar-border: oklch(0.90 0 0);
+  --sidebar-ring: var(--foss-mint);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: var(--code-night);
+  --foreground: var(--libre-white);
+  --card: var(--open-gray);
+  --card-foreground: var(--libre-white);
+  --popover: var(--open-gray);
+  --popover-foreground: var(--libre-white);
+  --primary: var(--foss-mint);
+  --primary-foreground: var(--code-night);
+  --secondary: oklch(0.25 0 0);
+  --secondary-foreground: var(--libre-white);
+  --muted: oklch(0.25 0 0);
+  --muted-foreground: oklch(0.65 0 0);
+  --accent: oklch(0.25 0 0);
+  --accent-foreground: var(--libre-white);
+  --destructive: var(--flame-red);
+  --border: oklch(0.30 0 0);
+  --input: oklch(0.30 0 0);
+  --ring: var(--foss-mint);
+  --chart-1: var(--foss-mint);
+  --chart-2: var(--pixel-blue);
+  --chart-3: var(--byte-yellow);
+  --chart-4: oklch(0.70 0.15 300);
+  --chart-5: oklch(0.65 0.12 180);
+  --sidebar: var(--open-gray);
+  --sidebar-foreground: var(--libre-white);
+  --sidebar-primary: var(--foss-mint);
+  --sidebar-primary-foreground: var(--code-night);
+  --sidebar-accent: oklch(0.25 0 0);
+  --sidebar-accent-foreground: var(--libre-white);
+  --sidebar-border: oklch(0.30 0 0);
+  --sidebar-ring: var(--foss-mint);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Typography - Design System */
+  h1,
+  h2,
+  h3 {
+    @apply font-bold;
+    letter-spacing: -0.06em;
+    /* -6% tracking */
+    line-height: 1;
+    /* 100% line height */
+  }
+
+  h4,
+  h5,
+  h6 {
+    @apply font-semibold;
+    letter-spacing: -0.06em;
+    line-height: 1;
+  }
+
+  p,
+  body {
+    @apply font-normal;
+    letter-spacing: -0.04em;
+    /* -4% tracking */
+    line-height: 1.2;
+    /* 120% line height */
+  }
+
+  .section-heading {
+    @apply font-medium;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  /* Link styles with Pixel Blue */
+  a {
+    @apply text-(--pixel-blue) hover:underline;
+  }
+
+  /* Ensure button links don't inherit link styles */
+  button a,
+  .btn a,
+  [role="button"] a {
+    @apply text-inherit no-underline;
   }
 }

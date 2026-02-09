@@ -4,6 +4,7 @@ import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import Image from 'next/image';
+import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +12,9 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReservationDialog } from '@/components/resources/reservation-dialog';
+import { CompleteReservationDialog } from '@/components/resources/complete-reservation-dialog';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface User {
     _id: string;
@@ -45,9 +49,13 @@ interface Resource {
 export default function ResourcePage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const router = useRouter();
+    const { user } = useAuth();
     const [resource, setResource] = useState<Resource | null>(null);
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
+    const [completing, setCompleting] = useState(false);
+    const [cancelling, setCancelling] = useState<string | null>(null);
 
     useEffect(() => {
         async function fetchResource() {
@@ -69,6 +77,67 @@ export default function ResourcePage({ params }: { params: Promise<{ id: string 
 
         fetchResource();
     }, [id, router]);
+
+    const handleCompleteReservation = async () => {
+        if (!resource?.currentReservation) return;
+
+        setCompleting(true);
+        try {
+            const res = await fetch(`/api/reservations/${resource.currentReservation.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'complete' }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to complete reservation');
+            }
+
+            toast.success('Reservation marked as complete!');
+            setCompleteDialogOpen(false);
+
+            // Refresh the resource data
+            const refreshRes = await fetch(`/api/resources/${id}`);
+            if (refreshRes.ok) {
+                const data = await refreshRes.json();
+                setResource(data.resource);
+            }
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to complete reservation');
+        } finally {
+            setCompleting(false);
+        }
+    };
+
+    const handleCancelReservation = async (reservationId: string) => {
+        if (!confirm('Are you sure you want to cancel this reservation?')) return;
+
+        setCancelling(reservationId);
+        try {
+            const res = await fetch(`/api/reservations/${reservationId}`, {
+                method: 'DELETE'
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to cancel reservation');
+            }
+
+            toast.success('Reservation cancelled successfully');
+
+            // Refresh the resource data
+            const refreshRes = await fetch(`/api/resources/${id}`);
+            if (refreshRes.ok) {
+                const data = await refreshRes.json();
+                setResource(data.resource);
+            }
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to cancel reservation');
+        } finally {
+            setCancelling(null);
+        }
+    };
 
     if (loading) {
         return (
@@ -131,7 +200,9 @@ export default function ResourcePage({ params }: { params: Promise<{ id: string 
                                     />
                                 </div>
                             )}
-                            <p className="text-muted-foreground">{resource.description}</p>
+                            <div className="prose dark:prose-invert max-w-none text-muted-foreground">
+                                <ReactMarkdown>{resource.description}</ReactMarkdown>
+                            </div>
                             {resource.isComputer && (resource.systemUser || resource.systemIp || resource.password) && (
                                 <div className="mt-4 p-4 rounded-lg border bg-muted/50 space-y-2">
                                     <p className="font-medium text-sm">Computer Details</p>
@@ -184,6 +255,15 @@ export default function ResourcePage({ params }: { params: Promise<{ id: string 
                                         <span className="font-medium">Reason:</span>{' '}
                                         {resource.currentReservation.reason}
                                     </p>
+                                    {user && resource.currentReservation.user._id === user.id && (
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setCompleteDialogOpen(true)}
+                                            className="w-full mt-3 cursor-pointer"
+                                        >
+                                            Mark as Done
+                                        </Button>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
@@ -219,6 +299,17 @@ export default function ResourcePage({ params }: { params: Promise<{ id: string 
                                                         {format(new Date(res.startTime), 'MMM d, HH:mm')} -{' '}
                                                         {format(new Date(res.endTime), 'MMM d, HH:mm')}
                                                     </p>
+                                                    {user && res.user._id === user.id && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => handleCancelReservation(res.id)}
+                                                            disabled={cancelling === res.id}
+                                                            className="w-full mt-2 cursor-pointer"
+                                                        >
+                                                            {cancelling === res.id ? 'Cancelling...' : 'Cancel Reservation'}
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}
@@ -263,6 +354,14 @@ export default function ResourcePage({ params }: { params: Promise<{ id: string 
                 open={dialogOpen}
                 onOpenChange={setDialogOpen}
                 resourceId={resource._id}
+                resourceName={resource.name}
+            />
+
+            <CompleteReservationDialog
+                open={completeDialogOpen}
+                onOpenChange={setCompleteDialogOpen}
+                onConfirm={handleCompleteReservation}
+                loading={completing}
                 resourceName={resource.name}
             />
         </div>

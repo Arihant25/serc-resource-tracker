@@ -64,6 +64,11 @@ export async function POST(request: NextRequest) {
 
         const start = new Date(startTime);
         const end = new Date(endTime);
+        const now = new Date();
+
+        if (start < now) {
+            return NextResponse.json({ error: 'Cannot create reservations in the past' }, { status: 400 });
+        }
 
         if (end <= start) {
             return NextResponse.json({ error: 'End time must be after start time' }, { status: 400 });

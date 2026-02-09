@@ -36,11 +36,11 @@ export function Header() {
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex justify-center">
             <div className="px-4 container flex h-16 items-center justify-between">
                 <div className="flex items-center gap-6">
-                    <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2 cursor-pointer">
+                    <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2 cursor-pointer no-underline">
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden bg-primary">
-                            <Image src="/logo.png" alt="SERC Tracker" width={36} height={36} className="h-full w-full object-cover" />
+                            <Image src="/logo.png" alt="SERC Resource Tracker" width={36} height={36} className="h-full w-full object-cover" />
                         </div>
-                        <span className="font-bold text-xl hidden sm:inline-block">SERC Tracker</span>
+                        <span className="font-bold text-xl hidden sm:inline-block text-[var(--byte-yellow)]">SERC Resource Tracker</span>
                     </Link>
                 </div>
 

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import ReactMarkdown from 'react-markdown';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -57,7 +58,11 @@ export function ResourceCard({ resource }: ResourceCardProps) {
                     </div>
                 )}
 
-                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{resource.description}</p>
+                <div className="prose dark:prose-invert max-w-none text-sm text-muted-foreground mb-3 line-clamp-2 [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 [&>li]:m-0">
+                    <ReactMarkdown disallowedElements={['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img']}>
+                        {resource.description}
+                    </ReactMarkdown>
+                </div>
 
                 {resource.currentReservation && (
                     <div className="p-2 rounded-md bg-muted text-sm mb-2">
@@ -92,7 +97,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
             </CardContent>
 
             <CardFooter className="pt-2">
-                <Button asChild className="w-full">
+                <Button asChild className="w-full bg-yellow-400 hover:bg-yellow-500 text-black">
                     <Link href={`/resources/${resource._id}`}>View Details</Link>
                 </Button>
             </CardFooter>

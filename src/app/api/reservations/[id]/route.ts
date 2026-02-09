@@ -39,7 +39,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 }
 
-// PATCH update reservation status (admin only for approval/rejection)
+// PATCH update reservation status (admin only for approval/rejection, users can complete their own)
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
     try {
         const user = await getCurrentUser();
@@ -49,13 +49,36 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         const { id } = await params;
         const body = await request.json();
-        const { status } = body;
+        const { status, action } = body;
 
         await connectDB();
 
         const reservation = await Reservation.findById(id);
         if (!reservation) {
             return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
+        }
+
+        // Handle "complete" action - users can complete their own approved reservations
+        if (action === 'complete') {
+            if (reservation.userId.toString() !== user._id.toString()) {
+                return NextResponse.json({ error: 'You can only complete your own reservations' }, { status: 403 });
+            }
+            if (reservation.status !== 'approved') {
+                return NextResponse.json({ error: 'Only approved reservations can be completed' }, { status: 400 });
+            }
+
+            // End the reservation by setting endTime to now
+            reservation.endTime = new Date();
+            await reservation.save();
+
+            const populated = await Reservation.findById(reservation._id)!
+                .populate('userId', 'name email')
+                .populate('resourceId', 'name') as unknown as IReservation & { userId: { name: string; email: string }; resourceId: { name: string } };
+
+            return NextResponse.json({
+                message: 'Reservation completed successfully',
+                reservation: populated
+            });
         }
 
         // Only admins can approve/reject
@@ -123,7 +146,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 }
 
-// DELETE reservation (user can delete their own pending, admin can delete any)
+// DELETE reservation (user can delete their own pending or approved reservations before start time, admin can delete any)
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
     try {
         const user = await getCurrentUser();
@@ -139,13 +162,22 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
         }
 
-        // Users can only delete their own pending reservations
+        // Users can delete their own pending reservations or approved reservations before the start time
         if (!user.isAdmin) {
             if (reservation.userId.toString() !== user._id.toString()) {
                 return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
             }
-            if (reservation.status !== 'pending') {
-                return NextResponse.json({ error: 'Can only cancel pending reservations' }, { status: 400 });
+
+            // Allow canceling pending reservations or approved reservations before start time
+            if (reservation.status === 'pending') {
+                // Always allow canceling pending reservations
+            } else if (reservation.status === 'approved') {
+                const now = new Date();
+                if (reservation.startTime <= now) {
+                    return NextResponse.json({ error: 'Cannot cancel an approved reservation that has already started' }, { status: 400 });
+                }
+            } else {
+                return NextResponse.json({ error: 'Can only cancel pending or approved (before start time) reservations' }, { status: 400 });
             }
         }
 

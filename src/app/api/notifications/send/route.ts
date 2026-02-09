@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
             });
             console.log('Failed tokens:', failedTokens);
 
-            // Optional: Remove invalid tokens from DB
+            // Remove invalid tokens from DB
             if (failedTokens.length > 0) {
                 await User.updateMany(
                     { fcmTokens: { $in: failedTokens } },
