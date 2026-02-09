@@ -39,6 +39,10 @@ export async function PUT(request: NextRequest) {
             { new: true }
         ).select('-password');
 
+        if (!updatedUser) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
         return NextResponse.json({
             user: {
                 id: updatedUser._id,

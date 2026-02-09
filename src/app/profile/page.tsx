@@ -50,9 +50,14 @@ export default function ProfilePage() {
     const [pushEnabled, setPushEnabled] = useState(user?.notificationPreferences?.push ?? true);
 
     useEffect(() => {
+        if (!user) {
+            setLoading(false);
+            return;
+        }
+
         async function fetchReservations() {
             try {
-                const res = await fetch(`/api/reservations?userId=${user.id}`);
+                const res = await fetch(`/api/reservations?userId=${user!.id}`);
                 if (res.ok) {
                     const data = await res.json();
                     setReservations(data.reservations);
@@ -64,10 +69,8 @@ export default function ProfilePage() {
             }
         }
 
-        if (user) {
-            fetchReservations();
-            setProfilePictureUrl(user.profilePicture ?? '');
-        }
+        fetchReservations();
+        setProfilePictureUrl(user.profilePicture ?? '');
     }, [user]);
 
     const handleChangePassword = async (e: React.FormEvent) => {
