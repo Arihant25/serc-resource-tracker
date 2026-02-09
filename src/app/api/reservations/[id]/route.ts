@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Reservation from '@/models/Reservation';
+import '@/models/Resource';
 import { getCurrentUser, requireAdmin } from '@/lib/auth';
 
 interface RouteParams {

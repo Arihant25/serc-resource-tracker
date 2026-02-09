@@ -35,9 +35,17 @@ export function useNotifications() {
                 throw new Error('Notification permission denied');
             }
 
+            if (!('serviceWorker' in navigator)) {
+                throw new Error('Service workers are not supported in this browser');
+            }
+
+            console.log('Registering Firebase service worker...');
+            const serviceWorkerRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+
             console.log('Getting FCM token...');
             const token = await getToken(messaging, {
                 vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+                serviceWorkerRegistration,
             });
 
             if (!token) {

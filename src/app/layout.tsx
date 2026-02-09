@@ -6,7 +6,6 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/sonner";
 import { InstallPrompt } from "@/components/InstallPrompt";
-import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,23 +53,6 @@ export default function RootLayout({
           <Toaster position="top-right" />
           <InstallPrompt />
         </AuthProvider>
-
-        {/* Register service worker for Firebase messaging */}
-        <Script id="register-sw" strategy="afterInteractive">
-          {`
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/firebase-messaging-sw.js')
-                  .then(function(registration) {
-                    console.log('Service Worker registered:', registration);
-                  })
-                  .catch(function(error) {
-                    console.log('Service Worker registration failed:', error);
-                  });
-              });
-            }
-          `}
-        </Script>
       </body>
     </html>
   );

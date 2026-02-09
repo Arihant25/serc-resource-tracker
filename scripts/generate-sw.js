@@ -32,8 +32,8 @@ envContent.split('\n').forEach(line => {
 });
 
 const swContent = `// Firebase Messaging Service Worker (Generated)
-importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.9.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.9.0/firebase-messaging-compat.js');
 
 // Initialize Firebase in the service worker
 firebase.initializeApp({
@@ -52,9 +52,10 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
     console.log('[firebase-messaging-sw.js] Received background message ', payload);
 
-    const notificationTitle = payload.notification?.title || 'SERC Resource Tracker';
+    const notification = payload && payload.notification ? payload.notification : {};
+    const notificationTitle = notification.title || 'SERC Resource Tracker';
     const notificationOptions = {
-        body: payload.notification?.body || 'You have a new notification',
+        body: notification.body || 'You have a new notification',
         icon: '/icons/icon-192x192.png',
         badge: '/icons/icon-192x192.png',
         data: payload.data,
