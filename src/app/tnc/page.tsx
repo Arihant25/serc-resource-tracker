@@ -6,9 +6,9 @@ export default function TermsAndConditions() {
     return (
         <div className="flex flex-col min-h-screen">
             {/* Header and Footer are already in layout.tsx, but checks if this page uses a different layout or same root layout */}
-            <div className="container py-10 space-y-8 max-w-4xl mx-auto">
-                <h1 className="text-3xl font-bold">Terms and Conditions</h1>
-                <p className="text-muted-foreground">Last updated: {new Date().toLocaleDateString()}</p>
+            <div className="container px-4 md:px-6 py-6 md:py-10 space-y-6 md:space-y-8 max-w-4xl mx-auto">
+                <h1 className="text-2xl md:text-3xl font-bold">Terms and Conditions</h1>
+                <p className="text-sm md:text-base text-muted-foreground">Last updated: {new Date().toLocaleDateString()}</p>
 
                 <section className="space-y-4">
                     <h2 className="text-xl font-semibold">1. Introduction</h2>
@@ -72,8 +72,7 @@ export default function TermsAndConditions() {
                 <section className="space-y-4">
                     <h2 className="text-xl font-semibold">7. Contact Us</h2>
                     <p>
-                        If you have any questions about these Terms, please contact the SERC
-                        administration.
+                        If you have any questions about these Terms, please contact the admins.
                     </p>
                 </section>
 

@@ -381,7 +381,7 @@ export default function AdminPage() {
             <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
 
             <Tabs defaultValue="reservations">
-                <TabsList className="mb-4">
+                <TabsList className="mb-4 w-full justify-start overflow-x-auto">
                     <TabsTrigger value="reservations" className="cursor-pointer">
                         Pending Reservations
                         {reservations.length > 0 && (
@@ -414,51 +414,53 @@ export default function AdminPage() {
                             {users.filter(u => !u.isApproved).length === 0 ? (
                                 <p className="text-muted-foreground">No pending users</p>
                             ) : (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-[50px]"></TableHead>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Email</TableHead>
-                                            <TableHead>Created</TableHead>
-                                            <TableHead>Actions</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {users.filter(u => !u.isApproved).map((user) => (
-                                            <TableRow key={user._id}>
-                                                <TableCell>
-                                                    <Avatar>
-                                                        <AvatarImage src={user.profilePicture} alt={user.name} />
-                                                        <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
-                                                    </Avatar>
-                                                </TableCell>
-                                                <TableCell className="font-medium">{user.name}</TableCell>
-                                                <TableCell>{user.email}</TableCell>
-                                                <TableCell>{format(new Date(user.createdAt), 'MMM d, yyyy')}</TableCell>
-                                                <TableCell>
-                                                    <div className="flex gap-2">
-                                                        <Button
-                                                            size="sm"
-                                                            onClick={() => handleApproveUser(user)}
-                                                            className="cursor-pointer"
-                                                        >
-                                                            Approve
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="destructive"
-                                                            onClick={() => handleRejectUser(user)}
-                                                            className="cursor-pointer"
-                                                        >
-                                                            Reject
-                                                        </Button>
-                                                    </div>
-                                                </TableCell>
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="w-[50px]"></TableHead>
+                                                <TableHead>Name</TableHead>
+                                                <TableHead>Email</TableHead>
+                                                <TableHead>Created</TableHead>
+                                                <TableHead>Actions</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {users.filter(u => !u.isApproved).map((user) => (
+                                                <TableRow key={user._id}>
+                                                    <TableCell>
+                                                        <Avatar>
+                                                            <AvatarImage src={user.profilePicture} alt={user.name} />
+                                                            <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                                                        </Avatar>
+                                                    </TableCell>
+                                                    <TableCell className="font-medium">{user.name}</TableCell>
+                                                    <TableCell>{user.email}</TableCell>
+                                                    <TableCell>{format(new Date(user.createdAt), 'MMM d, yyyy')}</TableCell>
+                                                    <TableCell>
+                                                        <div className="flex gap-2">
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => handleApproveUser(user)}
+                                                                className="cursor-pointer"
+                                                            >
+                                                                Approve
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="destructive"
+                                                                onClick={() => handleRejectUser(user)}
+                                                                className="cursor-pointer"
+                                                            >
+                                                                Reject
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
                             )}
                         </CardContent>
                     </Card>
@@ -474,19 +476,357 @@ export default function AdminPage() {
                             {reservations.length === 0 ? (
                                 <p className="text-muted-foreground">No pending reservations</p>
                             ) : (
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Resource</TableHead>
+                                                <TableHead>Requested By</TableHead>
+                                                <TableHead>Period</TableHead>
+                                                <TableHead>Priority</TableHead>
+                                                <TableHead>Reason</TableHead>
+                                                <TableHead>Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {reservations.map((res) => (
+                                                <TableRow key={res._id}>
+                                                    <TableCell className="font-medium">{res.resourceId.name}</TableCell>
+                                                    <TableCell>
+                                                        <div>
+                                                            <p>{res.userId?.name || 'Deleted User'}</p>
+                                                            <p className="text-xs text-muted-foreground">{res.userId?.email || 'N/A'}</p>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-sm">
+                                                        {format(new Date(res.startTime), 'MMM d, HH:mm')} -
+                                                        <br />
+                                                        {format(new Date(res.endTime), 'MMM d, HH:mm')}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={res.priority === 'urgent' ? 'destructive' : 'secondary'}>
+                                                            {res.priority}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="max-w-xs truncate">{res.reason}</TableCell>
+                                                    <TableCell>
+                                                        <div className="flex gap-2">
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => handleReservation(res._id, 'approved')}
+                                                                className="cursor-pointer"
+                                                            >
+                                                                Approve
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => handleReservation(res._id, 'rejected')}
+                                                                className="cursor-pointer"
+                                                            >
+                                                                Reject
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* Users Tab */}
+                <TabsContent value="users">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <CardTitle>Users</CardTitle>
+                            <Button onClick={() => openUserDialog()} className="cursor-pointer">Add User</Button>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="overflow-x-auto">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>Resource</TableHead>
-                                            <TableHead>Requested By</TableHead>
-                                            <TableHead>Period</TableHead>
-                                            <TableHead>Priority</TableHead>
-                                            <TableHead>Reason</TableHead>
+                                            <TableHead className="w-[50px]"></TableHead>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Email</TableHead>
+                                            <TableHead>Role</TableHead>
+                                            <TableHead>Created</TableHead>
                                             <TableHead>Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {reservations.map((res) => (
+                                        {users.filter(u => u.isApproved).map((user) => (
+                                            <TableRow key={user._id}>
+                                                <TableCell>
+                                                    <Avatar>
+                                                        <AvatarImage src={user.profilePicture} alt={user.name} />
+                                                        <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                                                    </Avatar>
+                                                </TableCell>
+                                                <TableCell className="font-medium">{user.name}</TableCell>
+                                                <TableCell>{user.email}</TableCell>
+                                                <TableCell>
+                                                    <Badge variant={user.isAdmin ? 'default' : 'secondary'}>
+                                                        {user.isAdmin ? 'Admin' : 'User'}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>{format(new Date(user.createdAt), 'MMM d, yyyy')}</TableCell>
+                                                <TableCell>
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => openUserDialog(user)}
+                                                            className="cursor-pointer"
+                                                        >
+                                                            Edit
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="destructive"
+                                                            onClick={() => handleDeleteUser(user._id)}
+                                                            className="cursor-pointer"
+                                                        >
+                                                            Delete
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* Resources Tab */}
+                <TabsContent value="resources">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <CardTitle>Resources</CardTitle>
+                            <Button onClick={() => openResourceDialog()} className="cursor-pointer">Add Resource</Button>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Description</TableHead>
+                                            <TableHead>Created</TableHead>
+                                            <TableHead>Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {resources.map((resource) => (
+                                            <TableRow key={resource._id}>
+                                                <TableCell className="font-medium">{resource.name}</TableCell>
+                                                <TableCell className="max-w-xs">
+                                                    <div className="prose dark:prose-invert max-w-none text-sm text-muted-foreground line-clamp-3 [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 [&>li]:m-0">
+                                                        <ReactMarkdown disallowedElements={['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img']}>
+                                                            {resource.description}
+                                                        </ReactMarkdown>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>{format(new Date(resource.createdAt), 'MMM d, yyyy')}</TableCell>
+                                                <TableCell>
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => openResourceDialog(resource)}
+                                                            className="cursor-pointer"
+                                                        >
+                                                            Edit
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="destructive"
+                                                            onClick={() => handleDeleteResource(resource._id)}
+                                                            className="cursor-pointer"
+                                                        >
+                                                            Delete
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="analysis">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+                        {/* Top Reservers by Count */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Top Reservers (Count)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Name</TableHead>
+                                                <TableHead className="text-right">Reservations</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {analytics?.topReserversByCount.map((user, i) => (
+                                                <TableRow key={i}>
+                                                    <TableCell className="font-medium">
+                                                        <div>
+                                                            <p>{user.name}</p>
+                                                            <p className="text-xs text-muted-foreground">{user.email}</p>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">{user.value}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Top Reservers by Time */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Top Reservers (Time)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Name</TableHead>
+                                                <TableHead className="text-right">Duration (Hours)</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {analytics?.topReserversByTime.map((user, i) => (
+                                                <TableRow key={i}>
+                                                    <TableCell className="font-medium">
+                                                        <div>
+                                                            <p>{user.name}</p>
+                                                            <p className="text-xs text-muted-foreground">{user.email}</p>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        {(user.value / (1000 * 60 * 60)).toFixed(1)}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Top Resources by Count */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Top Resources (Count)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Resource</TableHead>
+                                                <TableHead className="text-right">Reservations</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {analytics?.topResourcesByCount.map((res, i) => (
+                                                <TableRow key={i}>
+                                                    <TableCell className="font-medium">{res.name}</TableCell>
+                                                    <TableCell className="text-right">{res.value}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Top Resources by Time */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Top Resources (Time)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Resource</TableHead>
+                                                <TableHead className="text-right">Duration (Hours)</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {analytics?.topResourcesByTime.map((res, i) => (
+                                                <TableRow key={i}>
+                                                    <TableCell className="font-medium">{res.name}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        {(res.value / (1000 * 60 * 60)).toFixed(1)}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="logs">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle>Reservation Logs</CardTitle>
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                                <Input
+                                    placeholder="Search user or resource..."
+                                    className="w-full sm:w-[250px]"
+                                    value={logsSearch}
+                                    onChange={(e) => setLogsSearch(e.target.value)}
+                                />
+                                <select
+                                    className="h-9 w-full sm:w-[150px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    value={logsStatus}
+                                    onChange={(e) => setLogsStatus(e.target.value)}
+                                >
+                                    <option value="all">All Statuses</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Resource</TableHead>
+                                            <TableHead>User</TableHead>
+                                            <TableHead>Time</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Priority</TableHead>
+                                            <TableHead>Date Created</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {logs.map((res) => (
                                             <TableRow key={res._id}>
                                                 <TableCell className="font-medium">{res.resourceId.name}</TableCell>
                                                 <TableCell>
@@ -501,353 +841,31 @@ export default function AdminPage() {
                                                     {format(new Date(res.endTime), 'MMM d, HH:mm')}
                                                 </TableCell>
                                                 <TableCell>
+                                                    <Badge
+                                                        variant={
+                                                            res.status === 'approved'
+                                                                ? 'default'
+                                                                : res.status === 'rejected'
+                                                                    ? 'destructive'
+                                                                    : 'secondary'
+                                                        }
+                                                    >
+                                                        {res.status}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>
                                                     <Badge variant={res.priority === 'urgent' ? 'destructive' : 'secondary'}>
                                                         {res.priority}
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell className="max-w-xs truncate">{res.reason}</TableCell>
-                                                <TableCell>
-                                                    <div className="flex gap-2">
-                                                        <Button
-                                                            size="sm"
-                                                            onClick={() => handleReservation(res._id, 'approved')}
-                                                            className="cursor-pointer"
-                                                        >
-                                                            Approve
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => handleReservation(res._id, 'rejected')}
-                                                            className="cursor-pointer"
-                                                        >
-                                                            Reject
-                                                        </Button>
-                                                    </div>
+                                                <TableCell className="text-xs text-muted-foreground">
+                                                    {format(new Date(res.createdAt), 'MMM d, yyyy HH:mm')}
                                                 </TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
                                 </Table>
-                            )}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* Users Tab */}
-                <TabsContent value="users">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle>Users</CardTitle>
-                            <Button onClick={() => openUserDialog()} className="cursor-pointer">Add User</Button>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-[50px]"></TableHead>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Email</TableHead>
-                                        <TableHead>Role</TableHead>
-                                        <TableHead>Created</TableHead>
-                                        <TableHead>Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {users.filter(u => u.isApproved).map((user) => (
-                                        <TableRow key={user._id}>
-                                            <TableCell>
-                                                <Avatar>
-                                                    <AvatarImage src={user.profilePicture} alt={user.name} />
-                                                    <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
-                                                </Avatar>
-                                            </TableCell>
-                                            <TableCell className="font-medium">{user.name}</TableCell>
-                                            <TableCell>{user.email}</TableCell>
-                                            <TableCell>
-                                                <Badge variant={user.isAdmin ? 'default' : 'secondary'}>
-                                                    {user.isAdmin ? 'Admin' : 'User'}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>{format(new Date(user.createdAt), 'MMM d, yyyy')}</TableCell>
-                                            <TableCell>
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() => openUserDialog(user)}
-                                                        className="cursor-pointer"
-                                                    >
-                                                        Edit
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="destructive"
-                                                        onClick={() => handleDeleteUser(user._id)}
-                                                        className="cursor-pointer"
-                                                    >
-                                                        Delete
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* Resources Tab */}
-                <TabsContent value="resources">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle>Resources</CardTitle>
-                            <Button onClick={() => openResourceDialog()} className="cursor-pointer">Add Resource</Button>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Description</TableHead>
-                                        <TableHead>Created</TableHead>
-                                        <TableHead>Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {resources.map((resource) => (
-                                        <TableRow key={resource._id}>
-                                            <TableCell className="font-medium">{resource.name}</TableCell>
-                                            <TableCell className="max-w-xs">
-                                                <div className="prose dark:prose-invert max-w-none text-sm text-muted-foreground line-clamp-3 [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 [&>li]:m-0">
-                                                    <ReactMarkdown disallowedElements={['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img']}>
-                                                        {resource.description}
-                                                    </ReactMarkdown>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>{format(new Date(resource.createdAt), 'MMM d, yyyy')}</TableCell>
-                                            <TableCell>
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() => openResourceDialog(resource)}
-                                                        className="cursor-pointer"
-                                                    >
-                                                        Edit
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="destructive"
-                                                        onClick={() => handleDeleteResource(resource._id)}
-                                                        className="cursor-pointer"
-                                                    >
-                                                        Delete
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="analysis">
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
-                        {/* Top Reservers by Count */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Top Reservers (Count)</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead className="text-right">Reservations</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {analytics?.topReserversByCount.map((user, i) => (
-                                            <TableRow key={i}>
-                                                <TableCell className="font-medium">
-                                                    <div>
-                                                        <p>{user.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{user.email}</p>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="text-right">{user.value}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
-
-                        {/* Top Reservers by Time */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Top Reservers (Time)</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead className="text-right">Duration (Hours)</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {analytics?.topReserversByTime.map((user, i) => (
-                                            <TableRow key={i}>
-                                                <TableCell className="font-medium">
-                                                    <div>
-                                                        <p>{user.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{user.email}</p>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    {(user.value / (1000 * 60 * 60)).toFixed(1)}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
-
-                        {/* Top Resources by Count */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Top Resources (Count)</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Resource</TableHead>
-                                            <TableHead className="text-right">Reservations</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {analytics?.topResourcesByCount.map((res, i) => (
-                                            <TableRow key={i}>
-                                                <TableCell className="font-medium">{res.name}</TableCell>
-                                                <TableCell className="text-right">{res.value}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
-
-                        {/* Top Resources by Time */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Top Resources (Time)</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Resource</TableHead>
-                                            <TableHead className="text-right">Duration (Hours)</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {analytics?.topResourcesByTime.map((res, i) => (
-                                            <TableRow key={i}>
-                                                <TableCell className="font-medium">{res.name}</TableCell>
-                                                <TableCell className="text-right">
-                                                    {(res.value / (1000 * 60 * 60)).toFixed(1)}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="logs">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle>Reservation Logs</CardTitle>
-                            <div className="flex items-center space-x-2">
-                                <Input
-                                    placeholder="Search user or resource..."
-                                    className="w-[250px]"
-                                    value={logsSearch}
-                                    onChange={(e) => setLogsSearch(e.target.value)}
-                                />
-                                <select
-                                    className="h-9 w-[150px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                    value={logsStatus}
-                                    onChange={(e) => setLogsStatus(e.target.value)}
-                                >
-                                    <option value="all">All Statuses</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="rejected">Rejected</option>
-                                </select>
                             </div>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Resource</TableHead>
-                                        <TableHead>User</TableHead>
-                                        <TableHead>Time</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Priority</TableHead>
-                                        <TableHead>Date Created</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {logs.map((res) => (
-                                        <TableRow key={res._id}>
-                                            <TableCell className="font-medium">{res.resourceId.name}</TableCell>
-                                            <TableCell>
-                                                <div>
-                                                    <p>{res.userId?.name || 'Deleted User'}</p>
-                                                    <p className="text-xs text-muted-foreground">{res.userId?.email || 'N/A'}</p>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-sm">
-                                                {format(new Date(res.startTime), 'MMM d, HH:mm')} -
-                                                <br />
-                                                {format(new Date(res.endTime), 'MMM d, HH:mm')}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge
-                                                    variant={
-                                                        res.status === 'approved'
-                                                            ? 'default'
-                                                            : res.status === 'rejected'
-                                                                ? 'destructive'
-                                                                : 'secondary'
-                                                    }
-                                                >
-                                                    {res.status}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant={res.priority === 'urgent' ? 'destructive' : 'secondary'}>
-                                                    {res.priority}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-xs text-muted-foreground">
-                                                {format(new Date(res.createdAt), 'MMM d, yyyy HH:mm')}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
                         </CardContent>
                     </Card>
                 </TabsContent>
