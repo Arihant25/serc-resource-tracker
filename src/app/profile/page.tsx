@@ -52,7 +52,7 @@ export default function ProfilePage() {
     useEffect(() => {
         async function fetchReservations() {
             try {
-                const res = await fetch(`/api/reservations?userId=${user._id}`);
+                const res = await fetch(`/api/reservations?userId=${user.id}`);
                 if (res.ok) {
                     const data = await res.json();
                     setReservations(data.reservations);

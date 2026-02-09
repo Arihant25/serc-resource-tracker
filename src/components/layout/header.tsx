@@ -36,10 +36,10 @@ export function Header() {
             <div className="px-4 container flex h-16 items-center justify-between">
                 <div className="flex items-center gap-6">
                     <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2 cursor-pointer">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
-                            S
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden bg-primary">
+                            <img src="/logo.png" alt="SERC Tracker" className="h-full w-full object-cover" />
                         </div>
-                        <span className="font-semibold text-lg hidden sm:inline-block">SERC Tracker</span>
+                        <span className="font-bold text-xl hidden sm:inline-block">SERC Tracker</span>
                     </Link>
                 </div>
 

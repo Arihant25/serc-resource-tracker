@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         // Non-admins can only see their own reservations
         if (!user.isAdmin) {
             query.userId = user._id;
-        } else if (userId) {
+        } else if (userId && userId !== 'undefined') {
             query.userId = userId;
         }
 
