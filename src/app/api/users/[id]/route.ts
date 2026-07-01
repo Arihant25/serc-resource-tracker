@@ -37,7 +37,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         await requireAdmin();
         const { id } = await params;
         const body = await request.json();
-        const { name, email, isAdmin, password } = body;
+        const { name, email, isAdmin, password, resetPassword } = body;
 
         await connectDB();
 
@@ -54,6 +54,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         if (password) user.password = await hashPassword(password);
 
         await user.save();
+
+        // Clear password separately so Mongoose $unset works correctly
+        if (resetPassword) {
+            await User.findByIdAndUpdate(id, { $unset: { password: 1 } });
+        }
 
         return NextResponse.json({
             user: {

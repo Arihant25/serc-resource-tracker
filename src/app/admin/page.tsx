@@ -90,6 +90,10 @@ export default function AdminPage() {
     const [userEmail, setUserEmail] = useState('');
     const [userIsAdmin, setUserIsAdmin] = useState(false);
 
+    // Reset password dialog
+    const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
+    const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null);
+
     // Resource dialog
     const [resourceDialogOpen, setResourceDialogOpen] = useState(false);
     const [editingResource, setEditingResource] = useState<Resource | null>(null);
@@ -271,6 +275,27 @@ export default function AdminPage() {
             fetchUsers();
         } catch {
             toast.error('Failed to reject user');
+        }
+    };
+
+    const openResetPasswordDialog = (user: User) => {
+        setResetPasswordUser(user);
+        setResetPasswordDialogOpen(true);
+    };
+
+    const handleResetPassword = async () => {
+        if (!resetPasswordUser) return;
+        try {
+            const res = await fetch(`/api/users/${resetPasswordUser._id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ resetPassword: true }),
+            });
+            if (!res.ok) throw new Error('Failed to reset password');
+            toast.success(`Password cleared for ${resetPasswordUser.name}. They will set a new one on next login.`);
+            setResetPasswordDialogOpen(false);
+        } catch {
+            toast.error('Failed to reset password');
         }
     };
 
@@ -584,6 +609,14 @@ export default function AdminPage() {
                                                             className="cursor-pointer"
                                                         >
                                                             Edit
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => openResetPasswordDialog(user)}
+                                                            className="cursor-pointer"
+                                                        >
+                                                            Reset Password
                                                         </Button>
                                                         <Button
                                                             size="sm"
@@ -904,6 +937,27 @@ export default function AdminPage() {
                             Cancel
                         </Button>
                         <Button onClick={handleSaveUser} className="cursor-pointer">Save</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Reset Password Dialog */}
+            <Dialog open={resetPasswordDialogOpen} onOpenChange={setResetPasswordDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Reset Password</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <p className="text-sm text-muted-foreground">
+                            This will remove the password for <span className="font-medium text-foreground">{resetPasswordUser?.name}</span>.
+                            The next time they sign in, whatever password they enter will become their new password.
+                        </p>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setResetPasswordDialogOpen(false)} className="cursor-pointer">
+                            Cancel
+                        </Button>
+                        <Button variant="destructive" onClick={handleResetPassword} className="cursor-pointer">Reset Password</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
