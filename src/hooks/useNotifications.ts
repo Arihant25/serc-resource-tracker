@@ -5,6 +5,9 @@ import { getMessagingInstance } from '@/lib/firebase';
 import { getToken, onMessage } from 'firebase/messaging';
 import { toast } from 'sonner';
 
+// Module-level flag so only one onMessage listener is registered across all hook instances
+let foregroundListenerRegistered = false;
+
 export function useNotifications() {
     const [fcmToken, setFcmToken] = useState<string | null>(null);
     const [permission, setPermission] = useState<NotificationPermission>('default');
@@ -103,11 +106,12 @@ export function useNotifications() {
         }
     };
 
-    // Listen for foreground messages
+    // Listen for foreground messages (only one listener across all hook instances)
     useEffect(() => {
+        if (foregroundListenerRegistered) return;
+
         let unsubscribe: (() => void) | null = null;
 
-        // Initialize messaging and set up listener
         const setupMessaging = async () => {
             const messaging = await getMessagingInstance();
             if (!messaging) {
@@ -115,6 +119,8 @@ export function useNotifications() {
                 return;
             }
 
+            if (foregroundListenerRegistered) return;
+            foregroundListenerRegistered = true;
             console.log('Setting up foreground message listener...');
             unsubscribe = onMessage(messaging, (payload) => {
                 console.log('Foreground message received:', payload);
@@ -134,6 +140,7 @@ export function useNotifications() {
         return () => {
             if (unsubscribe) {
                 unsubscribe();
+                foregroundListenerRegistered = false;
             }
         };
     }, []);

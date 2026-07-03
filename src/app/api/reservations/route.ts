@@ -4,6 +4,7 @@ import Reservation, { IReservation } from '@/models/Reservation';
 import Resource from '@/models/Resource';
 import User from '@/models/User';
 import { getCurrentUser, requireAdmin } from '@/lib/auth';
+import { sendNotification } from '@/lib/notifications';
 
 // GET reservations
 export async function GET(request: NextRequest) {
@@ -137,21 +138,14 @@ export async function POST(request: NextRequest) {
 
         // Send notification to admins about new reservation request
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notifications/send`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Cookie': request.headers.get('cookie') || '',
+            await sendNotification({
+                notifyAllAdmins: true,
+                title: 'New Reservation Request',
+                body: `${populated?.userId.name} requested ${populated?.resourceId.name} from ${new Date(start).toLocaleString()} to ${new Date(end).toLocaleString()}`,
+                data: {
+                    reservationId: reservation._id.toString(),
+                    type: 'new_reservation',
                 },
-                body: JSON.stringify({
-                    notifyAllAdmins: true,
-                    title: 'New Reservation Request',
-                    body: `${populated?.userId.name} requested ${populated?.resourceId.name} from ${new Date(start).toLocaleString()} to ${new Date(end).toLocaleString()}`,
-                    data: {
-                        reservationId: reservation._id.toString(),
-                        type: 'new_reservation',
-                    },
-                }),
             });
         } catch (error) {
             console.error('Failed to send notification:', error);

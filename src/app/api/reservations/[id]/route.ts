@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb';
 import Reservation, { IReservation } from '@/models/Reservation';
 import '@/models/Resource';
 import { getCurrentUser } from '@/lib/auth';
+import { sendNotification } from '@/lib/notifications';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -115,21 +116,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
             // Send notification to user about approval/rejection
             try {
-                await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notifications/send`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Cookie': request.headers.get('cookie') || '',
+                await sendNotification({
+                    userId: reservation.userId.toString(),
+                    title: `Reservation ${status === 'approved' ? 'Approved' : 'Rejected'}`,
+                    body: `Your reservation for ${populated?.resourceId.name} has been ${status}`,
+                    data: {
+                        reservationId: reservation._id.toString(),
+                        type: `reservation_${status}`,
                     },
-                    body: JSON.stringify({
-                        userId: reservation.userId.toString(),
-                        title: `Reservation ${status === 'approved' ? 'Approved' : 'Rejected'}`,
-                        body: `Your reservation for ${populated?.resourceId.name} has been ${status}`,
-                        data: {
-                            reservationId: reservation._id.toString(),
-                            type: `reservation_${status}`,
-                        },
-                    }),
                 });
             } catch (error) {
                 console.error('Failed to send notification:', error);

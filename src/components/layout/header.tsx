@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -17,6 +18,8 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 export function Header() {
     const { user, logout } = useAuth();
     const router = useRouter();
+    // Set up foreground FCM message listener on every page
+    useNotifications();
 
     const handleLogout = async () => {
         await logout();
