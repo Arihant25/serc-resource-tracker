@@ -2,8 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { ResourceCard } from '@/components/resources/resource-card';
+import { ActiveBookingsCard } from '@/components/dashboard/active-bookings-card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
+
+type StatusFilter = 'all' | 'free' | 'inuse';
 
 interface Resource {
     _id: string;
@@ -28,9 +33,11 @@ interface Resource {
 }
 
 export default function DashboardPage() {
+    const { user } = useAuth();
     const [resources, setResources] = useState<Resource[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
     useEffect(() => {
         async function fetchResources() {
@@ -50,17 +57,31 @@ export default function DashboardPage() {
         fetchResources();
     }, []);
 
-    const filteredResources = resources.filter(
-        (r) =>
+    const filteredResources = resources.filter((r) => {
+        const matchesSearch =
             r.name.toLowerCase().includes(search.toLowerCase()) ||
-            r.description.toLowerCase().includes(search.toLowerCase())
-    );
+            r.description.toLowerCase().includes(search.toLowerCase());
+        const matchesStatus =
+            statusFilter === 'all' ||
+            (statusFilter === 'free' && r.isAvailable) ||
+            (statusFilter === 'inuse' && !r.isAvailable);
+        return matchesSearch && matchesStatus;
+    });
 
     const freeCount = resources.filter((r) => r.isAvailable).length;
+    const inUseCount = resources.length - freeCount;
+
+    const filters: { value: StatusFilter; label: string }[] = [
+        { value: 'all', label: `All (${resources.length})` },
+        { value: 'free', label: `Free (${freeCount})` },
+        { value: 'inuse', label: `In use (${inUseCount})` },
+    ];
 
     return (
         <div className="container mx-auto py-10 px-4">
             <div className="flex flex-col gap-8">
+                {user && <ActiveBookingsCard userId={user.id} />}
+
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                     <div>
                         <h1 className="font-display text-3xl md:text-4xl font-bold">The lab, right now</h1>
@@ -71,12 +92,31 @@ export default function DashboardPage() {
                             </p>
                         )}
                     </div>
-                    <Input
-                        placeholder="Search resources..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="max-w-xs rounded-full px-4"
-                    />
+                    <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                        <div className="inline-flex rounded-full border bg-muted/40 p-1">
+                            {filters.map((f) => (
+                                <button
+                                    key={f.value}
+                                    type="button"
+                                    onClick={() => setStatusFilter(f.value)}
+                                    className={cn(
+                                        'rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors cursor-pointer',
+                                        statusFilter === f.value
+                                            ? 'bg-background text-foreground shadow-sm'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                    )}
+                                >
+                                    {f.label}
+                                </button>
+                            ))}
+                        </div>
+                        <Input
+                            placeholder="Search resources..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="max-w-xs rounded-full px-4"
+                        />
+                    </div>
                 </div>
 
                 {loading ? (
@@ -88,10 +128,10 @@ export default function DashboardPage() {
                 ) : filteredResources.length === 0 ? (
                     <div className="text-center py-20">
                         <p className="font-display text-lg font-semibold mb-1">
-                            {search ? 'Nothing matches that search' : 'No resources yet'}
+                            {search || statusFilter !== 'all' ? 'Nothing matches your filters' : 'No resources yet'}
                         </p>
                         <p className="text-muted-foreground text-sm">
-                            {search ? 'Try a different name or keyword.' : 'An admin can add the first machine from the admin panel.'}
+                            {search || statusFilter !== 'all' ? 'Try a different name, keyword, or filter.' : 'An admin can add the first machine from the admin panel.'}
                         </p>
                     </div>
                 ) : (
