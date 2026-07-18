@@ -67,7 +67,7 @@ export function ActiveBookingsCard({ userId }: { userId: string }) {
     }
 
     return (
-        <div className="rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white p-6 shadow-sm">
+        <div className="rounded-2xl bg-green-700 text-white p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
                 <CalendarClock className="w-5 h-5" />
                 <h2 className="font-display text-lg font-semibold">

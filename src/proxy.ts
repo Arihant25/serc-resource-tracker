@@ -58,6 +58,11 @@ export async function proxy(request: NextRequest) {
         return NextResponse.next();
     }
 
+    // Terms and Conditions: always accessible
+    if (pathname === '/tnc') {
+        return NextResponse.next();
+    }
+
     // Login page: redirect to dashboard if already authenticated
     if (pathname === '/login') {
         if (payload) {

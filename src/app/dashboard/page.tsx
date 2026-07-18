@@ -92,15 +92,15 @@ export default function DashboardPage() {
                             </p>
                         )}
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-                        <div className="inline-flex rounded-full border bg-muted/40 p-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-start gap-3">
+                        <div className="flex sm:inline-flex w-full sm:w-auto rounded-full border bg-muted/40 p-1">
                             {filters.map((f) => (
                                 <button
                                     key={f.value}
                                     type="button"
                                     onClick={() => setStatusFilter(f.value)}
                                     className={cn(
-                                        'rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors cursor-pointer',
+                                        'flex-1 sm:flex-none rounded-full px-4 py-1.5 text-sm font-medium transition-colors cursor-pointer whitespace-nowrap',
                                         statusFilter === f.value
                                             ? 'bg-background text-foreground shadow-sm'
                                             : 'text-muted-foreground hover:text-foreground'
@@ -114,7 +114,7 @@ export default function DashboardPage() {
                             placeholder="Search resources..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="max-w-xs rounded-full px-4"
+                            className="w-full sm:w-64 rounded-full px-4"
                         />
                     </div>
                 </div>
