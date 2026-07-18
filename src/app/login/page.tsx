@@ -75,11 +75,11 @@ export default function LoginPage() {
 
     return (
         <div className="container mx-auto flex items-center justify-center min-h-[calc(100vh-8rem)] py-8">
-            <Card className="w-full max-w-md">
-                <CardHeader className="text-center">
-                    <CardTitle className="text-2xl">Welcome Back</CardTitle>
+            <Card className="w-full max-w-md rounded-2xl">
+                <CardHeader className="text-center space-y-1.5">
+                    <CardTitle className="font-display text-2xl">Welcome back</CardTitle>
                     <CardDescription>
-                        Sign in to your SERC Resource Tracker account
+                        Sign in to see what&rsquo;s free in the lab
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -109,8 +109,8 @@ export default function LoginPage() {
                                 First time logging in? Enter your desired password to set it up.
                             </p>
                         </div>
-                        <Button type="submit" className="w-full cursor-pointer" disabled={loading}>
-                            {loading ? 'Signing in...' : 'Sign In'}
+                        <Button type="submit" className="w-full cursor-pointer h-10 rounded-full" disabled={loading}>
+                            {loading ? 'Signing in…' : 'Sign in'}
                         </Button>
                     </form>
                 </CardContent>

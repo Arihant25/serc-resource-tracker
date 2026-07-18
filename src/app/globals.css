@@ -7,7 +7,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-figtree);
+  --font-display: var(--font-bricolage);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -37,6 +38,8 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-live: var(--live);
+  --color-busy: var(--busy);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -47,88 +50,87 @@
 }
 
 :root {
-  /* Design System Colors */
-  --foss-mint: oklch(0.66 0.18 155);
-  /* #08B74F */
-  --libre-white: oklch(1 0 0);
-  /* #FFFFFF */
-  --code-night: oklch(0.15 0 0);
-  /* #1A1A1A */
-  --open-gray: oklch(0.18 0 0);
-  /* #1E1E1E */
-  --pixel-blue: oklch(0.62 0.18 250);
-  /* #2E90FA */
-  --flame-red: oklch(0.60 0.22 25);
-  /* #F04438 */
-  --byte-yellow: oklch(0.85 0.14 85);
-  /* #FEC84B */
+  /*
+   * Palette — the whole neutral scale carries a faint green cast so the
+   * site reads as one material rather than gray chrome + green accent.
+   */
+  --pine: oklch(0.26 0.025 165);        /* ink */
+  --paper: oklch(0.988 0.004 150);      /* background */
+  --moss: oklch(0.46 0.09 160);         /* actions */
+  --sprout: oklch(0.68 0.17 152);       /* "available" signal */
+  --clay: oklch(0.71 0.13 65);          /* "in use" signal */
+  --brick: oklch(0.55 0.19 27);         /* destructive / urgent */
 
-  --radius: 0.5rem;
-  --background: var(--libre-white);
-  --foreground: var(--code-night);
-  --card: var(--libre-white);
-  --card-foreground: var(--code-night);
-  --popover: var(--libre-white);
-  --popover-foreground: var(--code-night);
-  --primary: var(--foss-mint);
-  --primary-foreground: var(--libre-white);
-  --secondary: oklch(0.96 0 0);
-  --secondary-foreground: var(--code-night);
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.50 0 0);
-  --accent: oklch(0.96 0 0);
-  --accent-foreground: var(--code-night);
-  --destructive: var(--flame-red);
-  --border: oklch(0.90 0 0);
-  --input: oklch(0.90 0 0);
-  --ring: var(--foss-mint);
-  --chart-1: var(--foss-mint);
-  --chart-2: var(--pixel-blue);
-  --chart-3: var(--byte-yellow);
-  --chart-4: oklch(0.70 0.15 300);
+  --radius: 0.75rem;
+  --background: var(--paper);
+  --foreground: var(--pine);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--pine);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--pine);
+  --primary: var(--moss);
+  --primary-foreground: oklch(0.99 0.005 150);
+  --secondary: oklch(0.955 0.008 155);
+  --secondary-foreground: var(--pine);
+  --muted: oklch(0.955 0.008 155);
+  --muted-foreground: oklch(0.5 0.02 165);
+  --accent: oklch(0.945 0.015 155);
+  --accent-foreground: var(--pine);
+  --destructive: var(--brick);
+  --border: oklch(0.91 0.01 160);
+  --input: oklch(0.89 0.012 160);
+  --ring: var(--moss);
+  --live: var(--sprout);
+  --busy: var(--clay);
+  --chart-1: var(--moss);
+  --chart-2: oklch(0.6 0.12 240);
+  --chart-3: var(--clay);
+  --chart-4: oklch(0.7 0.15 300);
   --chart-5: oklch(0.65 0.12 180);
-  --sidebar: var(--libre-white);
-  --sidebar-foreground: var(--code-night);
-  --sidebar-primary: var(--foss-mint);
-  --sidebar-primary-foreground: var(--libre-white);
-  --sidebar-accent: oklch(0.96 0 0);
-  --sidebar-accent-foreground: var(--code-night);
-  --sidebar-border: oklch(0.90 0 0);
-  --sidebar-ring: var(--foss-mint);
+  --sidebar: var(--paper);
+  --sidebar-foreground: var(--pine);
+  --sidebar-primary: var(--moss);
+  --sidebar-primary-foreground: oklch(0.99 0.005 150);
+  --sidebar-accent: oklch(0.955 0.008 155);
+  --sidebar-accent-foreground: var(--pine);
+  --sidebar-border: oklch(0.91 0.01 160);
+  --sidebar-ring: var(--moss);
 }
 
 .dark {
-  --background: var(--code-night);
-  --foreground: var(--libre-white);
-  --card: var(--open-gray);
-  --card-foreground: var(--libre-white);
-  --popover: var(--open-gray);
-  --popover-foreground: var(--libre-white);
-  --primary: var(--foss-mint);
-  --primary-foreground: var(--code-night);
-  --secondary: oklch(0.25 0 0);
-  --secondary-foreground: var(--libre-white);
-  --muted: oklch(0.25 0 0);
-  --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.25 0 0);
-  --accent-foreground: var(--libre-white);
-  --destructive: var(--flame-red);
-  --border: oklch(0.30 0 0);
-  --input: oklch(0.30 0 0);
-  --ring: var(--foss-mint);
-  --chart-1: var(--foss-mint);
-  --chart-2: var(--pixel-blue);
-  --chart-3: var(--byte-yellow);
-  --chart-4: oklch(0.70 0.15 300);
+  --background: oklch(0.21 0.018 170);
+  --foreground: oklch(0.96 0.008 150);
+  --card: oklch(0.25 0.02 168);
+  --card-foreground: oklch(0.96 0.008 150);
+  --popover: oklch(0.25 0.02 168);
+  --popover-foreground: oklch(0.96 0.008 150);
+  --primary: oklch(0.72 0.14 155);
+  --primary-foreground: oklch(0.2 0.02 170);
+  --secondary: oklch(0.3 0.02 168);
+  --secondary-foreground: oklch(0.96 0.008 150);
+  --muted: oklch(0.3 0.02 168);
+  --muted-foreground: oklch(0.7 0.015 160);
+  --accent: oklch(0.32 0.025 165);
+  --accent-foreground: oklch(0.96 0.008 150);
+  --destructive: oklch(0.62 0.18 27);
+  --border: oklch(0.33 0.02 168);
+  --input: oklch(0.35 0.02 168);
+  --ring: oklch(0.72 0.14 155);
+  --live: oklch(0.74 0.17 152);
+  --busy: oklch(0.76 0.13 70);
+  --chart-1: oklch(0.72 0.14 155);
+  --chart-2: oklch(0.65 0.12 240);
+  --chart-3: oklch(0.76 0.13 70);
+  --chart-4: oklch(0.7 0.15 300);
   --chart-5: oklch(0.65 0.12 180);
-  --sidebar: var(--open-gray);
-  --sidebar-foreground: var(--libre-white);
-  --sidebar-primary: var(--foss-mint);
-  --sidebar-primary-foreground: var(--code-night);
-  --sidebar-accent: oklch(0.25 0 0);
-  --sidebar-accent-foreground: var(--libre-white);
-  --sidebar-border: oklch(0.30 0 0);
-  --sidebar-ring: var(--foss-mint);
+  --sidebar: oklch(0.25 0.02 168);
+  --sidebar-foreground: oklch(0.96 0.008 150);
+  --sidebar-primary: oklch(0.72 0.14 155);
+  --sidebar-primary-foreground: oklch(0.2 0.02 170);
+  --sidebar-accent: oklch(0.3 0.02 168);
+  --sidebar-accent-foreground: oklch(0.96 0.008 150);
+  --sidebar-border: oklch(0.33 0.02 168);
+  --sidebar-ring: oklch(0.72 0.14 155);
 }
 
 @layer base {
@@ -138,51 +140,88 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.55;
   }
 
-  /* Typography - Design System */
   h1,
   h2,
   h3 {
+    font-family: var(--font-bricolage), var(--font-figtree), sans-serif;
     @apply font-bold;
-    letter-spacing: -0.06em;
-    /* -6% tracking */
-    line-height: 1;
-    /* 100% line height */
+    letter-spacing: -0.015em;
+    line-height: 1.1;
   }
 
   h4,
   h5,
   h6 {
+    font-family: var(--font-bricolage), var(--font-figtree), sans-serif;
     @apply font-semibold;
-    letter-spacing: -0.06em;
-    line-height: 1;
-  }
-
-  p,
-  body {
-    @apply font-normal;
-    letter-spacing: -0.04em;
-    /* -4% tracking */
+    letter-spacing: -0.01em;
     line-height: 1.2;
-    /* 120% line height */
   }
 
-  .section-heading {
-    @apply font-medium;
-    letter-spacing: -0.04em;
-    line-height: 1;
-  }
-
-  /* Link styles with Pixel Blue */
   a {
-    @apply text-(--pixel-blue) hover:underline;
+    @apply text-primary;
   }
 
-  /* Ensure button links don't inherit link styles */
+  p a,
+  .prose a {
+    @apply underline underline-offset-2 decoration-primary/40 hover:decoration-primary;
+  }
+
   button a,
   .btn a,
   [role="button"] a {
     @apply text-inherit no-underline;
+  }
+}
+
+@layer components {
+  .font-display {
+    font-family: var(--font-bricolage), var(--font-figtree), sans-serif;
+  }
+
+  /*
+   * Status dot — the site's recurring signal for availability.
+   * Live dots breathe; busy dots hold still.
+   */
+  .status-dot {
+    @apply relative inline-block size-2 shrink-0 rounded-full;
+  }
+
+  .status-dot-live {
+    background: var(--live);
+  }
+
+  .status-dot-live::after {
+    content: "";
+    @apply absolute inset-0 rounded-full;
+    background: var(--live);
+    animation: dot-breathe 2.6s ease-in-out infinite;
+  }
+
+  .status-dot-busy {
+    background: var(--busy);
+  }
+
+  @keyframes dot-breathe {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    50% {
+      transform: scale(2.1);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .status-dot-live::after {
+      animation: none;
+      opacity: 0;
+    }
   }
 }
