@@ -50,7 +50,6 @@ export async function PUT(request: NextRequest) {
                 email: updatedUser.email,
                 profilePicture: updatedUser.profilePicture,
                 isAdmin: updatedUser.isAdmin,
-                notificationPreferences: updatedUser.notificationPreferences,
             },
         });
     } catch (error) {

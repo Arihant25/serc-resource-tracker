@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -18,8 +17,6 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 export function Header() {
     const { user, logout } = useAuth();
     const router = useRouter();
-    // Set up foreground FCM message listener on every page
-    useNotifications();
 
     const handleLogout = async () => {
         await logout();
@@ -39,11 +36,11 @@ export function Header() {
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex justify-center">
             <div className="px-4 container flex h-16 items-center justify-between">
                 <div className="flex items-center gap-6">
-                    <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2 cursor-pointer no-underline">
+                    <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2.5 cursor-pointer no-underline text-foreground">
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden bg-primary">
                             <Image src="/logo.png" alt="SERC Resource Tracker" width={36} height={36} className="h-full w-full object-cover" />
                         </div>
-                        <span className="font-bold text-xl hidden sm:inline-block text-black">SERC Resource Tracker</span>
+                        <span className="font-display font-bold text-lg hidden sm:inline-block tracking-tight">SERC Resource Tracker</span>
                     </Link>
                 </div>
 
@@ -89,8 +86,8 @@ export function Header() {
                             </DropdownMenuContent>
                         </DropdownMenu>
                     ) : (
-                        <Button asChild className="cursor-pointer">
-                            <Link href="/login" className="cursor-pointer">Sign In</Link>
+                        <Button asChild className="cursor-pointer rounded-full px-5">
+                            <Link href="/login" className="cursor-pointer">Sign in</Link>
                         </Button>
                     )}
                 </div>

@@ -4,7 +4,7 @@ import Reservation, { IReservation } from '@/models/Reservation';
 import Resource from '@/models/Resource';
 import User from '@/models/User';
 import { getCurrentUser, requireAdmin } from '@/lib/auth';
-import { sendNotification } from '@/lib/notifications';
+import { notifyAdminsNewReservation } from '@/lib/notifications';
 
 // GET reservations
 export async function GET(request: NextRequest) {
@@ -136,21 +136,16 @@ export async function POST(request: NextRequest) {
             .populate('userId', 'name email')
             .populate('resourceId', 'name') as unknown as IReservation & { userId: { name: string; email: string }; resourceId: { name: string } };
 
-        // Send notification to admins about new reservation request
-        try {
-            await sendNotification({
-                notifyAllAdmins: true,
-                title: 'New Reservation Request',
-                body: `${populated?.userId.name} requested ${populated?.resourceId.name} from ${new Date(start).toLocaleString()} to ${new Date(end).toLocaleString()}`,
-                data: {
-                    reservationId: reservation._id.toString(),
-                    type: 'new_reservation',
-                },
-            });
-        } catch (error) {
-            console.error('Failed to send notification:', error);
-            // Don't fail the reservation creation if notification fails
-        }
+        // Email all admins about the new reservation request
+        await notifyAdminsNewReservation({
+            requesterName: populated.userId.name,
+            requesterEmail: populated.userId.email,
+            resourceName: populated.resourceId.name,
+            startTime: start,
+            endTime: end,
+            reason: populated.reason,
+            priority: populated.priority,
+        });
 
         return NextResponse.json({ reservation: populated }, { status: 201 });
     } catch (error) {

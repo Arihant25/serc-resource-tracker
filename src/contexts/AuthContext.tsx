@@ -8,9 +8,6 @@ interface User {
     email: string;
     profilePicture?: string;
     isAdmin: boolean;
-    notificationPreferences?: {
-        push: boolean;
-    };
 }
 
 interface AuthContextType {

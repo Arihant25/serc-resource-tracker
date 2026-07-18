@@ -4,13 +4,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
     Table,
@@ -36,7 +34,6 @@ interface Reservation {
 export default function ProfilePage() {
     const { user, loading: authLoading, refreshUser } = useAuth();
     const router = useRouter();
-    const { requestPermission, removeToken } = useNotifications();
     const [reservations, setReservations] = useState<Reservation[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -47,8 +44,6 @@ export default function ProfilePage() {
 
     const [profilePictureUrl, setProfilePictureUrl] = useState(user?.profilePicture ?? '');
     const [updatingProfilePicture, setUpdatingProfilePicture] = useState(false);
-
-    const [pushEnabled, setPushEnabled] = useState(user?.notificationPreferences?.push ?? true);
 
     const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
     const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
@@ -156,48 +151,6 @@ export default function ProfilePage() {
             setReservations((prev) => prev.filter((r) => r._id !== id));
         } catch {
             toast.error('Failed to cancel reservation');
-        }
-    };
-
-    const handleNotificationChange = async (enabled: boolean) => {
-        setPushEnabled(enabled);
-
-        try {
-            if (enabled) {
-                // Request notification permission and get FCM token
-                const success = await requestPermission();
-
-                if (!success) {
-                    // Error is already shown by requestPermission
-                    setPushEnabled(false);
-                    return;
-                }
-            } else {
-                // Remove FCM token
-                await removeToken();
-            }
-
-            // Update preference in database
-            console.log('Updating notification preferences in database...');
-            const res = await fetch('/api/notifications/preferences', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ push: enabled }),
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
-                throw new Error(errorData.error || 'Failed to update preferences');
-            }
-
-            console.log('Notification preferences updated successfully');
-            toast.success(`Notifications ${enabled ? 'enabled' : 'disabled'} successfully`);
-            refreshUser();
-        } catch (error) {
-            console.error('Notification change error:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Failed to update notification preferences';
-            toast.error(errorMessage);
-            setPushEnabled(!enabled);
         }
     };
 
@@ -352,14 +305,13 @@ export default function ProfilePage() {
                             <CardTitle>Notifications</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <Label>Push Notifications</Label>
-                                    <p className="text-sm text-muted-foreground">
-                                        Receive push notifications for reservations
-                                    </p>
-                                </div>
-                                <Switch checked={pushEnabled} onCheckedChange={handleNotificationChange} className="cursor-pointer" />
+                            <div>
+                                <Label>Email Notifications</Label>
+                                <p className="text-sm text-muted-foreground">
+                                    Updates about your reservations are sent to{' '}
+                                    <span className="font-medium text-foreground">{user.email}</span>. You&apos;ll
+                                    get an email when your request is approved or rejected.
+                                </p>
                             </div>
                         </CardContent>
                     </Card>

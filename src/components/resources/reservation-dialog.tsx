@@ -22,7 +22,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { useNotifications } from '@/hooks/useNotifications';
 
 interface ReservationDialogProps {
     open: boolean;
@@ -38,29 +37,13 @@ export function ReservationDialog({
     resourceName,
 }: ReservationDialogProps) {
     const router = useRouter();
-    const { requestPermission } = useNotifications();
     const [loading, setLoading] = useState(false);
-    const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
     const [startDate, setStartDate] = useState('');
     const [startTime, setStartTime] = useState('');
     const [endDate, setEndDate] = useState('');
     const [endTime, setEndTime] = useState('');
     const [reason, setReason] = useState('');
     const [priority, setPriority] = useState<'normal' | 'urgent'>('normal');
-
-    const handleEnableNotifications = async () => {
-        const success = await requestPermission();
-        if (success) {
-            // Update notification preferences to enabled
-            await fetch('/api/notifications/preferences', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ push: true }),
-            });
-            toast.success('Push notifications enabled! You\'ll be notified about your reservation updates.');
-        }
-        setShowNotificationPrompt(false);
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -104,11 +87,6 @@ export function ReservationDialog({
             onOpenChange(false);
             router.refresh();
 
-            // Check if notifications are enabled, if not prompt user
-            if (typeof window !== 'undefined' && Notification.permission !== 'granted') {
-                setShowNotificationPrompt(true);
-            }
-
             // Reset form
             setStartDate('');
             setStartTime('');
@@ -125,8 +103,7 @@ export function ReservationDialog({
     };
 
     return (
-        <>
-            <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={onOpenChange}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Reserve Resource</DialogTitle>
@@ -220,26 +197,5 @@ export function ReservationDialog({
                     </form>
                 </DialogContent>
             </Dialog>
-
-            {/* Notification Permission Prompt */}
-            <Dialog open={showNotificationPrompt} onOpenChange={setShowNotificationPrompt}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Stay Updated on Your Reservation</DialogTitle>
-                        <DialogDescription>
-                            Enable push notifications to receive updates about your reservation status, including when it's approved, upcoming reminders, and any changes.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => setShowNotificationPrompt(false)} className="cursor-pointer">
-                            Maybe Later
-                        </Button>
-                        <Button type="button" onClick={handleEnableNotifications} className="cursor-pointer">
-                            Enable Notifications
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </>
     );
 }

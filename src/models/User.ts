@@ -7,10 +7,6 @@ export interface IUser extends Document {
     password?: string;
     profilePicture?: string;
     isAdmin: boolean;
-    notificationPreferences: {
-        push: boolean;
-    };
-    fcmTokens: string[];
     isApproved: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -41,16 +37,6 @@ const UserSchema = new Schema<IUser>(
         isAdmin: {
             type: Boolean,
             default: false,
-        },
-        notificationPreferences: {
-            push: {
-                type: Boolean,
-                default: false,
-            },
-        },
-        fcmTokens: {
-            type: [String],
-            default: [],
         },
         isApproved: {
             type: Boolean,

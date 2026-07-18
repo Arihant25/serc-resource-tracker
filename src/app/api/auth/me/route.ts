@@ -16,7 +16,6 @@ export async function GET() {
                 email: user.email,
                 profilePicture: user.profilePicture,
                 isAdmin: user.isAdmin,
-                notificationPreferences: user.notificationPreferences,
             },
         });
     } catch (error) {

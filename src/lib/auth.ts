@@ -30,7 +30,7 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 
 // Generate JWT token
 export function generateToken(payload: JWTPayload): string {
-    return jwt.sign(payload, JWT_SECRET, { expiresIn: '1095d' });
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: '1460d' }); // 4 years
 }
 
 // Verify JWT token
@@ -49,7 +49,7 @@ export async function setAuthCookie(token: string): Promise<void> {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 365, // 365 days
+        maxAge: 60 * 60 * 24 * 365 * 4, // 4 years
         path: '/',
     });
 }

@@ -3,7 +3,7 @@ import connectDB from '@/lib/mongodb';
 import Reservation, { IReservation } from '@/models/Reservation';
 import '@/models/Resource';
 import { getCurrentUser } from '@/lib/auth';
-import { sendNotification } from '@/lib/notifications';
+import { notifyRequesterDecision } from '@/lib/notifications';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -114,21 +114,19 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
                 .populate('userId', 'name email')
                 .populate('resourceId', 'name') as unknown as IReservation & { userId: { name: string; email: string }; resourceId: { name: string } };
 
-            // Send notification to user about approval/rejection
-            try {
-                await sendNotification({
-                    userId: reservation.userId.toString(),
-                    title: `Reservation ${status === 'approved' ? 'Approved' : 'Rejected'}`,
-                    body: `Your reservation for ${populated?.resourceId.name} has been ${status}`,
-                    data: {
-                        reservationId: reservation._id.toString(),
-                        type: `reservation_${status}`,
-                    },
-                });
-            } catch (error) {
-                console.error('Failed to send notification:', error);
-                // Don't fail the update if notification fails
-            }
+            // Email the requester about the approval/rejection
+            await notifyRequesterDecision(
+                {
+                    requesterName: populated.userId.name,
+                    requesterEmail: populated.userId.email,
+                    resourceName: populated.resourceId.name,
+                    startTime: reservation.startTime,
+                    endTime: reservation.endTime,
+                    reason: reservation.reason,
+                    priority: reservation.priority,
+                },
+                status
+            );
 
             return NextResponse.json({ reservation: populated });
         }
