@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import { ImageUpload } from '@/components/ui/image-upload';
 import ReactMarkdown from 'react-markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ConflictTimeline } from '@/components/admin/conflict-timeline';
 
 interface User {
     _id: string;
@@ -529,7 +530,7 @@ export default function AdminPage() {
                         <CardHeader>
                             <CardTitle>Pending Reservation Requests</CardTitle>
                             {conflictsByReservation.size > 0 && (
-                                <p className="text-sm text-amber-600 dark:text-amber-500">
+                                <p className="text-sm text-[var(--clay)]">
                                     {conflictsByReservation.size} request{conflictsByReservation.size > 1 ? 's' : ''} clash with another booking — approving one will block the others.
                                 </p>
                             )}
@@ -555,7 +556,7 @@ export default function AdminPage() {
                                                 const conflicts = conflictsByReservation.get(res._id);
                                                 return (
                                                     <Fragment key={res._id}>
-                                                        <TableRow className={conflicts ? 'border-b-0 bg-amber-500/5' : undefined}>
+                                                        <TableRow className={conflicts ? 'border-b-0 bg-[var(--clay)]/[0.05]' : undefined}>
                                                             <TableCell className="font-medium">
                                                                 <div className="flex items-center gap-2">
                                                                     {res.resourceId.name}
@@ -607,26 +608,9 @@ export default function AdminPage() {
                                                             </TableCell>
                                                         </TableRow>
                                                         {conflicts && (
-                                                            <TableRow className="bg-amber-500/5 hover:bg-amber-500/5">
+                                                            <TableRow className="bg-[var(--clay)]/[0.04] hover:bg-[var(--clay)]/[0.04]">
                                                                 <TableCell colSpan={6} className="pt-0">
-                                                                    <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs">
-                                                                        <span className="font-medium text-amber-700 dark:text-amber-400">Overlapping time slot with:</span>
-                                                                        <ul className="mt-1 space-y-0.5">
-                                                                            {conflicts.map(({ reservation: c, kind }) => (
-                                                                                <li key={c._id} className="text-muted-foreground">
-                                                                                    <Badge
-                                                                                        variant={kind === 'approved' ? 'default' : 'secondary'}
-                                                                                        className="mr-2 align-middle text-[10px]"
-                                                                                    >
-                                                                                        {kind === 'approved' ? 'Approved' : 'Pending'}
-                                                                                    </Badge>
-                                                                                    <span className="font-medium text-foreground">{c.userId?.name || 'Deleted User'}</span>
-                                                                                    {' · '}
-                                                                                    {format(new Date(c.startTime), 'MMM d, HH:mm')} - {format(new Date(c.endTime), 'MMM d, HH:mm')}
-                                                                                </li>
-                                                                            ))}
-                                                                        </ul>
-                                                                    </div>
+                                                                    <ConflictTimeline request={res} conflicts={conflicts} />
                                                                 </TableCell>
                                                             </TableRow>
                                                         )}

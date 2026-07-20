@@ -362,7 +362,8 @@ export default function ResourcePage({ params }: { params: Promise<{ id: string 
                                                             {format(new Date(res.endTime), 'MMM d, HH:mm')}
                                                         </p>
                                                         {overlapsApproved && (
-                                                            <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
+                                                            <p className="mt-1 inline-flex items-center gap-1 text-xs text-[var(--clay)]">
+                                                                <span className="inline-block size-1.5 rounded-full bg-[var(--clay)]" aria-hidden="true" />
                                                                 Overlaps a confirmed booking
                                                             </p>
                                                         )}

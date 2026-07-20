@@ -224,4 +224,30 @@
       opacity: 0;
     }
   }
+
+  /*
+   * Conflict bars grow out from their start edge on reveal, so the eye reads
+   * the timeline left-to-right the way time actually runs.
+   */
+  .conflict-bar {
+    transform-origin: left center;
+    animation: conflict-grow 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes conflict-grow {
+    from {
+      transform: scaleX(0);
+      opacity: 0;
+    }
+    to {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .conflict-bar {
+      animation: none;
+    }
+  }
 }
