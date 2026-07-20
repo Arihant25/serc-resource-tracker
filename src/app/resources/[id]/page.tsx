@@ -43,6 +43,7 @@ interface Resource {
     isAvailable: boolean;
     currentReservation: Reservation | null;
     futureReservations: Reservation[];
+    pendingReservations: Reservation[];
     pastReservations: Reservation[];
 }
 
@@ -313,6 +314,73 @@ export default function ResourcePage({ params }: { params: Promise<{ id: string 
                                                 </div>
                                             </div>
                                         ))}
+                                    </div>
+                                </ScrollArea>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Requested (Pending) Reservations */}
+                    <Card className="border-dashed">
+                        <CardHeader>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                Requested
+                                {resource.pendingReservations.length > 0 && (
+                                    <Badge variant="secondary" className="text-xs font-normal">
+                                        {resource.pendingReservations.length} awaiting approval
+                                    </Badge>
+                                )}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {resource.pendingReservations.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">No pending requests</p>
+                            ) : (
+                                <ScrollArea className="h-48">
+                                    <div className="space-y-3">
+                                        {resource.pendingReservations.map((res, idx) => {
+                                            const overlapsApproved = resource.futureReservations.some(
+                                                (a) =>
+                                                    new Date(res.startTime) < new Date(a.endTime) &&
+                                                    new Date(res.endTime) > new Date(a.startTime)
+                                            );
+                                            return (
+                                                <div key={res.id}>
+                                                    {idx > 0 && <Separator className="my-2" />}
+                                                    <div className="text-sm">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <span className="font-medium">{res.user.name}</span>
+                                                            <Badge variant="outline" className="text-xs">Pending</Badge>
+                                                            {res.priority === 'urgent' && (
+                                                                <Badge variant="destructive" className="text-xs">
+                                                                    Urgent
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-muted-foreground text-xs mt-0.5">
+                                                            {format(new Date(res.startTime), 'MMM d, HH:mm')} -{' '}
+                                                            {format(new Date(res.endTime), 'MMM d, HH:mm')}
+                                                        </p>
+                                                        {overlapsApproved && (
+                                                            <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
+                                                                Overlaps a confirmed booking
+                                                            </p>
+                                                        )}
+                                                        {user && res.user._id === user.id && (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => handleCancelReservation(res.id)}
+                                                                disabled={cancelling === res.id}
+                                                                className="w-full mt-2 cursor-pointer"
+                                                            >
+                                                                {cancelling === res.id ? 'Cancelling...' : 'Cancel Request'}
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </ScrollArea>
                             )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,6 +76,7 @@ export default function AdminPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [resources, setResources] = useState<Resource[]>([]);
     const [reservations, setReservations] = useState<Reservation[]>([]);
+    const [approvedReservations, setApprovedReservations] = useState<Reservation[]>([]);
     const [logs, setLogs] = useState<Reservation[]>([]);
     const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -144,10 +145,17 @@ export default function AdminPage() {
 
     async function fetchReservations() {
         try {
-            const res = await fetch('/api/reservations?status=pending');
-            if (res.ok) {
-                const data = await res.json();
+            const [pendingRes, approvedRes] = await Promise.all([
+                fetch('/api/reservations?status=pending'),
+                fetch('/api/reservations?status=approved'),
+            ]);
+            if (pendingRes.ok) {
+                const data = await pendingRes.json();
                 setReservations(data.reservations);
+            }
+            if (approvedRes.ok) {
+                const data = await approvedRes.json();
+                setApprovedReservations(data.reservations);
             }
         } catch (error) {
             console.error('Failed to fetch reservations:', error);
@@ -390,6 +398,30 @@ export default function AdminPage() {
         }
     };
 
+    const overlaps = (a: Reservation, b: Reservation) =>
+        new Date(a.startTime) < new Date(b.endTime) && new Date(a.endTime) > new Date(b.startTime);
+
+    // Map each pending reservation to the bookings it clashes with (other pending requests + approved bookings)
+    const conflictsByReservation = new Map<string, { reservation: Reservation; kind: 'pending' | 'approved' }[]>();
+    for (const res of reservations) {
+        const conflicts: { reservation: Reservation; kind: 'pending' | 'approved' }[] = [];
+        for (const other of reservations) {
+            if (
+                other._id !== res._id &&
+                other.resourceId._id === res.resourceId._id &&
+                overlaps(res, other)
+            ) {
+                conflicts.push({ reservation: other, kind: 'pending' });
+            }
+        }
+        for (const appr of approvedReservations) {
+            if (appr.resourceId._id === res.resourceId._id && overlaps(res, appr)) {
+                conflicts.push({ reservation: appr, kind: 'approved' });
+            }
+        }
+        if (conflicts.length > 0) conflictsByReservation.set(res._id, conflicts);
+    }
+
     if (loading) {
         return (
             <div className="container mx-auto py-8 px-4">
@@ -496,6 +528,11 @@ export default function AdminPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Pending Reservation Requests</CardTitle>
+                            {conflictsByReservation.size > 0 && (
+                                <p className="text-sm text-amber-600 dark:text-amber-500">
+                                    {conflictsByReservation.size} request{conflictsByReservation.size > 1 ? 's' : ''} clash with another booking — approving one will block the others.
+                                </p>
+                            )}
                         </CardHeader>
                         <CardContent>
                             {reservations.length === 0 ? (
@@ -514,47 +551,88 @@ export default function AdminPage() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {reservations.map((res) => (
-                                                <TableRow key={res._id}>
-                                                    <TableCell className="font-medium">{res.resourceId.name}</TableCell>
-                                                    <TableCell>
-                                                        <div>
-                                                            <p>{res.userId?.name || 'Deleted User'}</p>
-                                                            <p className="text-xs text-muted-foreground">{res.userId?.email || 'N/A'}</p>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-sm">
-                                                        {format(new Date(res.startTime), 'MMM d, HH:mm')} -
-                                                        <br />
-                                                        {format(new Date(res.endTime), 'MMM d, HH:mm')}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge variant={res.priority === 'urgent' ? 'destructive' : 'secondary'}>
-                                                            {res.priority}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell className="max-w-xs truncate">{res.reason}</TableCell>
-                                                    <TableCell>
-                                                        <div className="flex gap-2">
-                                                            <Button
-                                                                size="sm"
-                                                                onClick={() => handleReservation(res._id, 'approved')}
-                                                                className="cursor-pointer"
-                                                            >
-                                                                Approve
-                                                            </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                onClick={() => handleReservation(res._id, 'rejected')}
-                                                                className="cursor-pointer"
-                                                            >
-                                                                Reject
-                                                            </Button>
-                                                        </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
+                                            {reservations.map((res) => {
+                                                const conflicts = conflictsByReservation.get(res._id);
+                                                return (
+                                                    <Fragment key={res._id}>
+                                                        <TableRow className={conflicts ? 'border-b-0 bg-amber-500/5' : undefined}>
+                                                            <TableCell className="font-medium">
+                                                                <div className="flex items-center gap-2">
+                                                                    {res.resourceId.name}
+                                                                    {conflicts && (
+                                                                        <Badge variant="destructive" className="gap-1">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                                                                            </svg>
+                                                                            Conflict
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <div>
+                                                                    <p>{res.userId?.name || 'Deleted User'}</p>
+                                                                    <p className="text-xs text-muted-foreground">{res.userId?.email || 'N/A'}</p>
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell className="text-sm">
+                                                                {format(new Date(res.startTime), 'MMM d, HH:mm')} -
+                                                                <br />
+                                                                {format(new Date(res.endTime), 'MMM d, HH:mm')}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Badge variant={res.priority === 'urgent' ? 'destructive' : 'secondary'}>
+                                                                    {res.priority}
+                                                                </Badge>
+                                                            </TableCell>
+                                                            <TableCell className="max-w-xs truncate">{res.reason}</TableCell>
+                                                            <TableCell>
+                                                                <div className="flex gap-2">
+                                                                    <Button
+                                                                        size="sm"
+                                                                        onClick={() => handleReservation(res._id, 'approved')}
+                                                                        className="cursor-pointer"
+                                                                    >
+                                                                        Approve
+                                                                    </Button>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        onClick={() => handleReservation(res._id, 'rejected')}
+                                                                        className="cursor-pointer"
+                                                                    >
+                                                                        Reject
+                                                                    </Button>
+                                                                </div>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                        {conflicts && (
+                                                            <TableRow className="bg-amber-500/5 hover:bg-amber-500/5">
+                                                                <TableCell colSpan={6} className="pt-0">
+                                                                    <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs">
+                                                                        <span className="font-medium text-amber-700 dark:text-amber-400">Overlapping time slot with:</span>
+                                                                        <ul className="mt-1 space-y-0.5">
+                                                                            {conflicts.map(({ reservation: c, kind }) => (
+                                                                                <li key={c._id} className="text-muted-foreground">
+                                                                                    <Badge
+                                                                                        variant={kind === 'approved' ? 'default' : 'secondary'}
+                                                                                        className="mr-2 align-middle text-[10px]"
+                                                                                    >
+                                                                                        {kind === 'approved' ? 'Approved' : 'Pending'}
+                                                                                    </Badge>
+                                                                                    <span className="font-medium text-foreground">{c.userId?.name || 'Deleted User'}</span>
+                                                                                    {' · '}
+                                                                                    {format(new Date(c.startTime), 'MMM d, HH:mm')} - {format(new Date(c.endTime), 'MMM d, HH:mm')}
+                                                                                </li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    </div>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        )}
+                                                    </Fragment>
+                                                );
+                                            })}
                                         </TableBody>
                                     </Table>
                                 </div>

@@ -44,6 +44,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             .populate('userId', 'name email')
             .sort({ startTime: 1 });
 
+        // Get pending (requested but not yet approved) reservations that haven't ended
+        const pendingReservations = await Reservation.find({
+            resourceId: resource._id,
+            status: 'pending',
+            endTime: { $gt: now },
+        })
+            .populate('userId', 'name email')
+            .sort({ startTime: 1 });
+
         // Get past reservations (last 1 year)
         const pastReservations = await Reservation.find({
             resourceId: resource._id,
@@ -85,6 +94,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                     }
                     : null,
                 futureReservations: futureReservations.map((r) => ({
+                    id: r._id,
+                    user: r.userId,
+                    startTime: r.startTime,
+                    endTime: r.endTime,
+                    priority: r.priority,
+                    reason: r.reason,
+                })),
+                pendingReservations: pendingReservations.map((r) => ({
                     id: r._id,
                     user: r.userId,
                     startTime: r.startTime,
