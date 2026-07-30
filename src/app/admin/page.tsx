@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +27,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { ImageUpload } from '@/components/ui/image-upload';
+import { fetchResourceImageDataUrl } from '@/lib/resource-image';
 import ReactMarkdown from 'react-markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ConflictTimeline } from '@/components/admin/conflict-timeline';
@@ -46,6 +47,7 @@ interface Resource {
     name: string;
     description: string;
     image?: string;
+    hasImage?: boolean;
     collegeId?: string;
     isComputer?: boolean;
     systemUser?: string;
@@ -102,6 +104,10 @@ export default function AdminPage() {
     const [resourceName, setResourceName] = useState('');
     const [resourceDescription, setResourceDescription] = useState('');
     const [resourceImage, setResourceImage] = useState('');
+    const [resourceImageLoading, setResourceImageLoading] = useState(false);
+    /** Which resource the in-flight image fetch belongs to, so a late reply can't
+     *  land in a different resource's form. */
+    const editingImageForRef = useRef<string | null>(null);
     const [resourceCollegeId, setResourceCollegeId] = useState('');
     const [resourceIsComputer, setResourceIsComputer] = useState(false);
     const [resourceSystemUser, setResourceSystemUser] = useState('');
@@ -315,6 +321,17 @@ export default function AdminPage() {
             setResourceName(resource.name);
             setResourceDescription(resource.description);
             setResourceImage(resource.image || '');
+            // The list response no longer carries inline photos, so pull the real
+            // bytes back in — the form round-trips them on save.
+            editingImageForRef.current = resource._id;
+            if (!resource.image && resource.hasImage) {
+                setResourceImageLoading(true);
+                fetchResourceImageDataUrl(resource._id).then((dataUrl) => {
+                    if (editingImageForRef.current !== resource._id) return;
+                    if (dataUrl) setResourceImage(dataUrl);
+                    setResourceImageLoading(false);
+                });
+            }
             setResourceCollegeId(resource.collegeId || '');
             setResourceIsComputer(resource.isComputer || false);
             setResourceSystemUser(resource.systemUser || '');
@@ -325,6 +342,8 @@ export default function AdminPage() {
             setResourceName('');
             setResourceDescription('');
             setResourceImage('');
+            editingImageForRef.current = null;
+            setResourceImageLoading(false);
             setResourceCollegeId('');
             setResourceIsComputer(false);
             setResourceSystemUser('');
@@ -335,6 +354,13 @@ export default function AdminPage() {
     };
 
     const handleSaveResource = async () => {
+        // The form only holds the real image once it has loaded; saving before then
+        // would send an empty string and wipe the photo.
+        if (resourceImageLoading) {
+            toast.error('Still loading the current image — try again in a moment');
+            return;
+        }
+
         try {
             const method = editingResource ? 'PUT' : 'POST';
             const url = editingResource ? `/api/resources/${editingResource._id}` : '/api/resources';
@@ -345,7 +371,8 @@ export default function AdminPage() {
                 body: JSON.stringify({
                     name: resourceName,
                     description: resourceDescription,
-                    image: resourceImage || undefined,
+                    // Sent even when empty: '' is how the form says "remove the photo".
+                    image: resourceImage,
                     collegeId: resourceCollegeId || undefined,
                     isComputer: resourceIsComputer,
                     systemUser: resourceIsComputer ? (resourceSystemUser || undefined) : undefined,
@@ -1056,7 +1083,11 @@ export default function AdminPage() {
                             <ImageUpload
                                 value={resourceImage}
                                 onChange={(url: string) => setResourceImage(url)}
+                                disabled={resourceImageLoading}
                             />
+                            {resourceImageLoading && (
+                                <p className="text-xs text-muted-foreground">Loading current image…</p>
+                            )}
                         </div>
                         <div className="flex items-center gap-2 col-span-2 py-2">
                             <Checkbox

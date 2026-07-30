@@ -66,7 +66,8 @@ export async function GET(request: NextRequest) {
         const reservations = await Reservation.find(query)
             .populate('userId', 'name email')
             .populate('resourceId', 'name')
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean();
 
         return NextResponse.json({ reservations });
     } catch (error) {

@@ -1,9 +1,8 @@
-import mongoose from 'mongoose';
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Resource from '@/models/Resource';
-import Reservation from '@/models/Reservation';
 import { getCurrentUser, requireAdmin } from '@/lib/auth';
+import { getResourceList } from '@/lib/resource-queries';
 
 // GET all resources
 export async function GET() {
@@ -13,67 +12,7 @@ export async function GET() {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        await connectDB();
-
-        const resources = await Resource.find({}).sort({ createdAt: -1 });
-
-        // Get current reservations for each resource
-        const now = new Date();
-        const resourcesWithStatus = await Promise.all(
-            resources.map(async (resource) => {
-                const currentReservation = await Reservation.findOne({
-                    resourceId: resource._id,
-                    status: 'approved',
-                    startTime: { $lte: now },
-                    endTime: { $gte: now },
-                }).populate('userId', 'name email');
-
-                const futureReservations = await Reservation.find({
-                    resourceId: resource._id,
-                    status: 'approved',
-                    startTime: { $gt: now },
-                })
-                    .populate('userId', 'name email')
-                    .sort({ startTime: 1 })
-                    .limit(3);
-
-                // Check if current user has an active reservation for this resource
-                const hasActiveReservation = user.isAdmin || !!(currentReservation &&
-                    currentReservation.userId &&
-                    (currentReservation.userId as unknown as { _id: mongoose.Types.ObjectId })._id.toString() === user._id.toString());
-
-                const resourceObj = resource.toObject();
-                // Strip computer details if user doesn't have an active reservation
-                if (!hasActiveReservation) {
-                    delete resourceObj.systemUser;
-                    delete resourceObj.systemIp;
-                    delete resourceObj.password;
-                }
-
-                return {
-                    ...resourceObj,
-                    isAvailable: !currentReservation,
-                    currentReservation: currentReservation
-                        ? {
-                            id: currentReservation._id,
-                            user: currentReservation.userId,
-                            startTime: currentReservation.startTime,
-                            endTime: currentReservation.endTime,
-                            priority: currentReservation.priority,
-                        }
-                        : null,
-                    futureReservations: futureReservations.map((r) => ({
-                        id: r._id,
-                        user: r.userId,
-                        startTime: r.startTime,
-                        endTime: r.endTime,
-                        priority: r.priority,
-                    })),
-                };
-            })
-        );
-
-        return NextResponse.json({ resources: resourcesWithStatus });
+        return NextResponse.json({ resources: await getResourceList(user) });
     } catch (error) {
         console.error('Get resources error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -96,7 +35,7 @@ export async function POST(request: NextRequest) {
         const resource = await Resource.create({
             name,
             description,
-            image,
+            image: image || undefined,
             collegeId,
             isComputer,
             systemUser: isComputer ? systemUser : undefined,

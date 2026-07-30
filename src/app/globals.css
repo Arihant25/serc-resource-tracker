@@ -226,6 +226,18 @@
   }
 
   /*
+   * A pending booking is hatched rather than filled: a request that nobody has
+   * approved yet shouldn't read as a solid wall on the calendar.
+   */
+  .band-pending {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      color-mix(in oklab, var(--busy) 42%, transparent) 0 2px,
+      color-mix(in oklab, var(--busy) 12%, transparent) 2px 6px
+    );
+  }
+
+  /*
    * Conflict bars grow out from their start edge on reveal, so the eye reads
    * the timeline left-to-right the way time actually runs.
    */

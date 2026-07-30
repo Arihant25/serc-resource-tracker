@@ -5,45 +5,29 @@ import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-
-interface User {
-    _id: string;
-    name: string;
-    email: string;
-}
-
-interface Reservation {
-    id: string;
-    user: User;
-    startTime: string;
-    endTime: string;
-    priority: 'urgent' | 'normal';
-}
+import { resourceImageSrc } from '@/lib/resource-image';
+import type { ResourceView } from '@/lib/resource-queries';
 
 interface ResourceCardProps {
-    resource: {
-        _id: string;
-        name: string;
-        description: string;
-        image?: string;
-        isAvailable: boolean;
-        currentReservation: Reservation | null;
-        futureReservations: Reservation[];
-    };
+    resource: ResourceView;
 }
 
 export function ResourceCard({ resource }: ResourceCardProps) {
+    const imageSrc = resourceImageSrc(resource);
+
     return (
         <Link
             href={`/resources/${resource._id}`}
             className="group flex flex-col h-full overflow-hidden rounded-2xl border bg-card text-card-foreground no-underline shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-all duration-200 hover:shadow-[0_8px_24px_rgb(0_0_0/0.08)] hover:-translate-y-0.5 focus-visible:ring-[3px] focus-visible:ring-ring/50 outline-none"
         >
-            {resource.image && (
+            {imageSrc && (
                 <div className="relative w-full aspect-[16/9] bg-muted overflow-hidden">
                     <Image
-                        src={resource.image}
+                        src={imageSrc}
                         alt={resource.name}
                         fill
+                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                        quality={70}
                         className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                     />
                 </div>
@@ -75,7 +59,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
                         <div className="rounded-lg bg-muted/70 px-3 py-2.5 text-sm">
                             <div className="flex items-center justify-between gap-2">
                                 <span className="font-medium truncate">
-                                    {resource.currentReservation.user.name}
+                                    {resource.currentReservation.user?.name ?? 'Deleted User'}
                                 </span>
                                 {resource.currentReservation.priority === 'urgent' && (
                                     <Badge variant="destructive" className="text-xs">Urgent</Badge>
@@ -87,7 +71,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
                         </div>
                     ) : resource.futureReservations.length > 0 ? (
                         <p className="text-xs text-muted-foreground">
-                            Next: {resource.futureReservations[0].user.name} ·{' '}
+                            Next: {resource.futureReservations[0].user?.name ?? 'Deleted User'} ·{' '}
                             {format(new Date(resource.futureReservations[0].startTime), 'MMM d, HH:mm')}
                         </p>
                     ) : (

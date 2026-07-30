@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface User {
     id: string;
@@ -20,9 +20,17 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+export function AuthProvider({
+    children,
+    initialUser = null,
+}: {
+    children: ReactNode;
+    /** Resolved on the server in the root layout, so no page has to wait on a
+     *  /api/auth/me round trip before it can render its chrome. */
+    initialUser?: User | null;
+}) {
+    const [user, setUser] = useState<User | null>(initialUser);
+    const [loading, setLoading] = useState(false);
 
     const refreshUser = async () => {
         try {
@@ -45,9 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    useEffect(() => {
-        refreshUser();
-    }, []);
+    // No mount fetch: the server already told us who this is. `refreshUser` stays
+    // for callers that change the user (profile edits, password changes).
 
     const login = async (email: string, password: string) => {
         const res = await fetch('/api/auth/login', {

@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
 import connectDB from './mongodb';
@@ -60,8 +61,13 @@ export async function clearAuthCookie(): Promise<void> {
     cookieStore.delete(COOKIE_NAME);
 }
 
-// Get current user from request
-export async function getCurrentUser(request?: NextRequest): Promise<IUser | null> {
+/**
+ * Get current user from request.
+ *
+ * Wrapped in React's `cache` so the root layout and the page it renders share one
+ * lookup per request instead of hitting the database twice.
+ */
+export const getCurrentUser = cache(async (request?: NextRequest): Promise<IUser | null> => {
     try {
         let token: string | undefined;
 
@@ -87,7 +93,7 @@ export async function getCurrentUser(request?: NextRequest): Promise<IUser | nul
     } catch {
         return null;
     }
-}
+});
 
 // Check if user is admin
 export async function requireAdmin(request?: NextRequest): Promise<IUser> {

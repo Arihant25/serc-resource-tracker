@@ -89,6 +89,12 @@ export async function proxy(request: NextRequest) {
         return NextResponse.next();
     }
 
+    // Resource photos are public: Next's image optimizer fetches them server-side
+    // without our cookie, and it can only resize/re-encode what it can read.
+    if (/^\/api\/resources\/[^/]+\/image(\/.*)?$/.test(pathname)) {
+        return NextResponse.next();
+    }
+
     // --- Protected routes (auth required) ---
 
     if (!payload) {

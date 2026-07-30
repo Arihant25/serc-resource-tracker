@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { CalendarClock } from 'lucide-react';
 
-interface Booking {
+export interface Booking {
     _id: string;
     resourceId: { _id: string; name: string };
     startTime: string;
@@ -28,28 +28,9 @@ function formatCountdown(ms: number): string {
     return parts.join(' ');
 }
 
-export function ActiveBookingsCard({ userId }: { userId: string }) {
-    const [bookings, setBookings] = useState<Booking[]>([]);
+/** Bookings come from the server with the page; this only runs the countdown. */
+export function ActiveBookingsCard({ bookings }: { bookings: Booking[] }) {
     const [now, setNow] = useState(() => Date.now());
-
-    useEffect(() => {
-        let cancelled = false;
-        async function load() {
-            try {
-                const res = await fetch(`/api/reservations?userId=${userId}&status=approved`);
-                if (res.ok && !cancelled) {
-                    const data = await res.json();
-                    setBookings(data.reservations ?? []);
-                }
-            } catch (error) {
-                console.error('Failed to load bookings:', error);
-            }
-        }
-        load();
-        return () => {
-            cancelled = true;
-        };
-    }, [userId]);
 
     // Tick every second for the live countdown.
     useEffect(() => {

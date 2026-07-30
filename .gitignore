@@ -35,3 +35,6 @@ next-env.d.ts
 
 # Firebase Service Worker (Generated)
 /public/firebase-messaging-sw.js
+
+# Image originals saved by scripts/compress-resource-images.mjs
+backups/

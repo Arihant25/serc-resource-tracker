@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { compressImageFile } from '@/lib/compress-image';
 
 interface ImageUploadProps {
     value: string;
@@ -12,28 +13,39 @@ interface ImageUploadProps {
     disabled?: boolean;
 }
 
-export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, disabled: disabledProp }: ImageUploadProps) {
     const [isDragActive, setIsDragActive] = useState(false);
+    const [compressing, setCompressing] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    const disabled = disabledProp || compressing;
 
-    const handleFile = (file: File) => {
+    const handleFile = async (file: File) => {
         if (!file.type.startsWith('image/')) {
             toast.error('File must be an image');
             return;
         }
 
-        if (file.size > 2 * 1024 * 1024) { // 2MB
-            toast.error('Image must be less than 2MB');
+        if (file.size > 10 * 1024 * 1024) { // 10MB
+            toast.error('Image must be less than 10MB');
             return;
         }
 
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            if (typeof reader.result === 'string') {
-                onChange(reader.result);
+        // Downscaled and re-encoded here so the database never stores a full-size
+        // camera JPEG — see @/lib/compress-image.
+        setCompressing(true);
+        try {
+            const dataUrl = await compressImageFile(file);
+            // The Resource model rejects anything past ~2MB stored.
+            if (dataUrl.length > 2_800_000) {
+                toast.error('Image is still too large after compression — try a smaller file');
+                return;
             }
-        };
-        reader.readAsDataURL(file);
+            onChange(dataUrl);
+        } catch {
+            toast.error('Could not read that image');
+        } finally {
+            setCompressing(false);
+        }
     };
 
     const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -42,7 +54,7 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
         setIsDragActive(false);
 
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            handleFile(e.dataTransfer.files[0]);
+            void handleFile(e.dataTransfer.files[0]);
         }
     };
 
@@ -61,7 +73,7 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         if (e.target.files && e.target.files[0]) {
-            handleFile(e.target.files[0]);
+            void handleFile(e.target.files[0]);
         }
     };
 
@@ -115,10 +127,14 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
                         </div>
                         <div className="flex flex-col gap-1">
                             <span className="font-medium text-foreground">
-                                {isDragActive ? "Drop image here" : "Click to upload or drag and drop"}
+                                {compressing
+                                    ? "Compressing…"
+                                    : isDragActive
+                                        ? "Drop image here"
+                                        : "Click to upload or drag and drop"}
                             </span>
                             <span className="text-xs">
-                                SVG, PNG, JPG or GIF (max. 2MB)
+                                SVG, PNG, JPG or GIF — large photos are shrunk automatically
                             </span>
                         </div>
                     </div>

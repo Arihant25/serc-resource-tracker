@@ -51,7 +51,7 @@ export default function ProfilePage() {
 
     useEffect(() => {
         if (!user) {
-            setLoading(false);
+            router.replace('/login');
             return;
         }
 
@@ -71,7 +71,7 @@ export default function ProfilePage() {
 
         fetchReservations();
         setProfilePictureUrl(user.profilePicture ?? '');
-    }, [user]);
+    }, [user, router]);
 
     const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -219,8 +219,9 @@ export default function ProfilePage() {
         );
     }
 
+    // Navigating has to happen in an effect, not during render — see the redirect
+    // effect above. (The proxy already keeps signed-out visitors off this page.)
     if (!user) {
-        router.push('/login');
         return null;
     }
 
