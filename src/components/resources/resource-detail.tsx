@@ -115,6 +115,11 @@ export function ResourceDetail({ resource, currentUserId }: ResourceDetailProps)
                                     >
                                         {resource.isAvailable ? 'Available' : 'In Use'}
                                     </Badge>
+                                    {resource.sa4sOnly && (
+                                        <Badge variant="outline" className="mt-2 ml-2">
+                                            Only for SA4S
+                                        </Badge>
+                                    )}
                                 </div>
                                 <Button onClick={() => setDialogOpen(true)} className="cursor-pointer">Reserve</Button>
                             </div>

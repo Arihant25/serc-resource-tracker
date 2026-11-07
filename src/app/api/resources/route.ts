@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     try {
         await requireAdmin();
         const body = await request.json();
-        const { name, description, image, collegeId, isComputer, systemUser, systemIp, password } = body;
+        const { name, description, image, collegeId, isComputer, sa4sOnly, systemUser, systemIp, password } = body;
 
         if (!name || !description) {
             return NextResponse.json({ error: 'Name and description are required' }, { status: 400 });
@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
             image: image || undefined,
             collegeId,
             isComputer,
+            sa4sOnly: sa4sOnly === true,
             systemUser: isComputer ? systemUser : undefined,
             systemIp: isComputer ? systemIp : undefined,
             password: isComputer ? password : undefined,

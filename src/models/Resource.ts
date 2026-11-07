@@ -7,6 +7,8 @@ export interface IResource extends Document {
     image?: string; // Base64 encoded, max 2MB
     collegeId?: string;
     isComputer?: boolean;
+    /** Reserved for the SA4S group; shown as an "Only for SA4S" tag. */
+    sa4sOnly?: boolean;
     systemUser?: string;
     systemIp?: string;
     password?: string;
@@ -42,6 +44,10 @@ const ResourceSchema = new Schema<IResource>(
             trim: true,
         },
         isComputer: {
+            type: Boolean,
+            default: false,
+        },
+        sa4sOnly: {
             type: Boolean,
             default: false,
         },

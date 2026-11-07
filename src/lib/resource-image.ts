@@ -32,6 +32,7 @@ export interface ResourceDoc {
     hasImage: boolean;
     collegeId?: string;
     isComputer?: boolean;
+    sa4sOnly?: boolean;
     systemUser?: string;
     systemIp?: string;
     password?: string;

@@ -36,7 +36,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         await requireAdmin();
         const { id } = await params;
         const body = await request.json();
-        const { name, description, image, collegeId, isComputer, systemUser, systemIp, password } = body;
+        const { name, description, image, collegeId, isComputer, sa4sOnly, systemUser, systemIp, password } = body;
 
         await connectDB();
 
@@ -52,6 +52,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         if (image !== undefined) resource.image = image || undefined;
         if (collegeId !== undefined) resource.collegeId = collegeId;
         if (isComputer !== undefined) resource.isComputer = isComputer;
+        if (sa4sOnly !== undefined) resource.sa4sOnly = sa4sOnly === true;
         if (isComputer) {
             if (systemUser !== undefined) resource.systemUser = systemUser;
             if (systemIp !== undefined) resource.systemIp = systemIp;

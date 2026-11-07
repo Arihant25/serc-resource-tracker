@@ -48,6 +48,12 @@ export function ResourceCard({ resource }: ResourceCardProps) {
                     </span>
                 </div>
 
+                {resource.sa4sOnly && (
+                    <Badge variant="outline" className="mb-2 text-xs">
+                        Only for SA4S
+                    </Badge>
+                )}
+
                 <div className="prose dark:prose-invert max-w-none text-sm text-muted-foreground line-clamp-3 [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 [&>li]:m-0">
                     <ReactMarkdown disallowedElements={['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img']}>
                         {resource.description}

@@ -50,6 +50,7 @@ interface Resource {
     hasImage?: boolean;
     collegeId?: string;
     isComputer?: boolean;
+    sa4sOnly?: boolean;
     systemUser?: string;
     systemIp?: string;
     password?: string;
@@ -110,6 +111,7 @@ export default function AdminPage() {
     const editingImageForRef = useRef<string | null>(null);
     const [resourceCollegeId, setResourceCollegeId] = useState('');
     const [resourceIsComputer, setResourceIsComputer] = useState(false);
+    const [resourceSa4sOnly, setResourceSa4sOnly] = useState(false);
     const [resourceSystemUser, setResourceSystemUser] = useState('');
     const [resourceSystemIp, setResourceSystemIp] = useState('');
     const [resourcePassword, setResourcePassword] = useState('');
@@ -334,6 +336,7 @@ export default function AdminPage() {
             }
             setResourceCollegeId(resource.collegeId || '');
             setResourceIsComputer(resource.isComputer || false);
+            setResourceSa4sOnly(resource.sa4sOnly || false);
             setResourceSystemUser(resource.systemUser || '');
             setResourceSystemIp(resource.systemIp || '');
             setResourcePassword(resource.password || '');
@@ -346,6 +349,7 @@ export default function AdminPage() {
             setResourceImageLoading(false);
             setResourceCollegeId('');
             setResourceIsComputer(false);
+            setResourceSa4sOnly(false);
             setResourceSystemUser('');
             setResourceSystemIp('');
             setResourcePassword('');
@@ -375,6 +379,7 @@ export default function AdminPage() {
                     image: resourceImage,
                     collegeId: resourceCollegeId || undefined,
                     isComputer: resourceIsComputer,
+                    sa4sOnly: resourceSa4sOnly,
                     systemUser: resourceIsComputer ? (resourceSystemUser || undefined) : undefined,
                     systemIp: resourceIsComputer ? (resourceSystemIp || undefined) : undefined,
                     password: resourceIsComputer ? (resourcePassword || undefined) : undefined,
@@ -1096,6 +1101,14 @@ export default function AdminPage() {
                                 onCheckedChange={(c) => setResourceIsComputer(c === true)}
                             />
                             <Label htmlFor="isComputer">This is a computer</Label>
+                        </div>
+                        <div className="flex items-center gap-2 col-span-2 pb-2">
+                            <Checkbox
+                                id="sa4sOnly"
+                                checked={resourceSa4sOnly}
+                                onCheckedChange={(c) => setResourceSa4sOnly(c === true)}
+                            />
+                            <Label htmlFor="sa4sOnly">Only for SA4S (shows a tag on the dashboard)</Label>
                         </div>
                         {resourceIsComputer && (
                             <>
